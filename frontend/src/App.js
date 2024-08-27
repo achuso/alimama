@@ -1,14 +1,14 @@
-import logo from './logo.svg';
+//import logo from './logo.svg';
 import './App.css';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 
-import Welcome from './components/welcome-screen/Welcome';
+import AuthContainer from './components/Welcome-Page/AuthContainer.tsx';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Welcome/>} />
+        <Route path="/" element={<AuthContainer/>} />
       </Routes>
     </BrowserRouter>
   );
