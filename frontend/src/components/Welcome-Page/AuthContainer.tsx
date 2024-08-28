@@ -14,10 +14,10 @@ const AuthContainer: React.FC = () => {
             <div className="row justify-content-center">
                 <div className="col-md-6">
                     <div className="card">
-                        <div className="card-body">
-                            <h2 className="card-title text-center">
-                                {isLogin ? 'Login' : 'Register'}
-                            </h2>
+                        <div className="card-body">   
+                            <h1 className="card-title text-center">
+                                Welcome to Alimama!
+                            </h1>
                             {isLogin ? <LoginForm /> : <RegisterForm />}
                             <button
                                 className="btn btn-link btn-block mt-3"
