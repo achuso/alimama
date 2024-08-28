@@ -2,6 +2,8 @@ package com.alimama.alimamaspringboot;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,6 +13,10 @@ import java.sql.PreparedStatement;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.bson.Document;
 
 public class DatabaseConnection {
     private Connection postgresqlClient;
@@ -59,7 +65,7 @@ public class DatabaseConnection {
         return false;
     }
 
-    public ResultSet submitQueryPostgres(String query) {
+    public ResultSet queryPostgres(String query) {
         ResultSet results = null;
         PreparedStatement stmt = null;
 
@@ -130,17 +136,20 @@ public class DatabaseConnection {
         return false;
     }
 
-    // function for submitting query
-    /*
-    =
-    =
-    =
-    =
-    =
-    =
-    =
-    =
-     */
+    public List<Document> queryMongoDB(String collectionName, Document query) {
+        List<Document> results = new ArrayList<>();
+
+        if (this.mongoClient != null) {
+            MongoDatabase database = mongoClient.getDatabase(env.get("mongo_dbname"));
+            MongoCollection<Document> collection = database.getCollection(collectionName);
+
+            for (Document doc: collection.find(query)) {
+                results.add(doc);
+            }
+        }
+
+        return results;
+    }
 
     public boolean disconnectMongodb() {
         if (this.mongoClient != null) {
