@@ -24,8 +24,8 @@ const AuthContainer: React.FC = () => {
                                 onClick={toggleForm}
                             >
                                 {isLogin
-                                    ? "Don't have an account? Register here"
-                                    : 'Already have an account? Login here'}
+                                    ? "Don't have an account? Register here!"
+                                    : 'Already have an account? Login here!'}
                             </button>
                         </div>
                     </div>
