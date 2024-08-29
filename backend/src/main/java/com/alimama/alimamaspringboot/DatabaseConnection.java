@@ -28,13 +28,14 @@ public class DatabaseConnection {
     private final Map<String, String> env;
 
     DatabaseConnection() {
-        env = new HashMap<>();
-        // Postgresql credentials
-        env.put("pg_username", System.getenv("POSTGRES_USER"));
-        env.put("pg_password", System.getenv("POSTGRES_PASSWORD"));
-        env.put("pg_dbname", System.getenv("POSTGRES_DB_NAME"));
-        env.put("pg_hostname", System.getenv("POSTGRES_HOST"));
-        env.put("pg_port", System.getenv("POSTGRES_PORT"));
+            env = new HashMap<>();
+            // Postgresql credentials
+            env.put("pg_username", System.getenv("POSTGRES_USER"));
+            env.put("pg_password", System.getenv("POSTGRES_PASSWORD"));
+            env.put("pg_dbname", System.getenv("POSTGRES_DB_NAME"));
+            env.put("pg_hostname", System.getenv("POSTGRES_HOST"));
+            env.put("pg_port", System.getenv("POSTGRES_PORT"));
+
         this.postgresConnURI = String.format(
                 "jdbc:postgresql://%s:%s/%s",
                 env.get("pg_hostname"), env.get("pg_port"), env.get("pg_dbname"));
@@ -44,10 +45,11 @@ public class DatabaseConnection {
         env.put("mongo_password", System.getenv("MONGO_INITDB_ROOT_PASSWORD"));
         env.put("mongo_port", System.getenv("MONGO_PORT"));
         env.put("mongo_host", System.getenv("MONGO_HOST"));
+
         this.connMongoURI = String.format(
-                "mongodb://%s:%s@%s:%s/%s",
+                "mongodb://%s:%s@%s:%d/%s",
                 env.get("mongo_username"), env.get("mongo_password"),
-                env.get("mongo_host"), env.get("mongo_port"),
+                env.get("mongo_host"), Integer.parseInt(env.get("mongo_port")),
                 env.get("mongo_dbname")
                 );
     }
