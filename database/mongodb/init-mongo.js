@@ -40,6 +40,38 @@ const itemSchema = new mongoose.Schema({
   ratingAvgTotal: { type: Number, default: 0 }
 });
 
+// Cart x Item schemas
+const cartItemSchema = new mongoose.Schema({
+  item_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
+  unit_price: { type: Number, required: true },
+  quantity: { type: Number, required: true }
+});
+
+// Cart schema
+const cartSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  items: [cartItemSchema],
+  total_amount: { type: Number, default: 0 },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Purchase x Item schema (for multiple items in purchase)
+const purchaseItemSchema = new mongoose.Schema({
+  item_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
+  unit_price: { type: Number, required: true },
+  quantity: { type: Number, required: true }
+});
+
+// Purchase schema 
+const purchaseSchema = new mongoose.Schema({
+  _id: { type: mongoose.Schema.Types.ObjectId, required: true },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  items: [purchaseItemSchema],
+  total_amount: { type: Number, required: true },
+  purchase_date: { type: Date, default: Date.now },
+  payment_status: { type: String, default: 'Pending' }
+});
+
 // Review schema
 const reviewSchema = new mongoose.Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
@@ -53,6 +85,7 @@ const reviewSchema = new mongoose.Schema({
 // Create models
 const Item = mongoose.model('Item', itemSchema);
 const Review = mongoose.model('Review', reviewSchema);
+const Cart = mongoose.model('Cart', cartSchema);
 
 // sample data
 async function initDatabase() {
