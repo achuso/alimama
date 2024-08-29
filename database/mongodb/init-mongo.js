@@ -1,7 +1,20 @@
-const mongoose = require('mongoose');
+// Import env vars
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+const mongo_username = process.env.MONGO_INITDB_ROOT_USERNAME;
+const mongo_password = process.env.MONGO_INITDB_ROOT_PASSWORD;
+const mongo_dbname = process.env.MONGO_DB_NAME;
+const mongo_host = process.env.MONGO_HOST;
+const mongo_port = process.env.MONGO_PORT;
 
 // Connect to MongoDB
-const mongoURI = 'mongodb://localhost:27017/alimama-mongodb';
+const mongoose = require('mongoose');
+const mongoURI = `mongodb://${mongo_username}:${mongo_password}@${mongo_host}:${mongo_port}/${mongo_dbname}?authSource=admin`;
+
+// Example output
+mongoose.set('strictQuery', true);
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Tags as enum
@@ -71,6 +84,12 @@ async function initDatabase() {
   } 
   catch (error) {
     console.error('DB init failed', error);
+  }
+  finally {
+    mongoose.connection.close(() => {
+      console.log('Mongo connection closed');
+      process.exit(0);
+    });
   }
 }
 
