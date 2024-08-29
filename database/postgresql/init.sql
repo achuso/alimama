@@ -1,6 +1,17 @@
--- CREATE TYPE user_role AS ENUM('Customer', 'Vendor', 'Admin');
+-- Because 'IF NOT EXISTS' for types were too hard
+DO $$ 
+BEGIN
+    CREATE TYPE user_role AS ENUM('Customer', 'Vendor', 'Admin');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TABLE users (
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'Customer';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'Vendor';
+ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'Admin';
+--
+
+CREATE TABLE IF NOT EXISTS users (
 	user_id SERIAL PRIMARY KEY,
 	email VARCHAR(50) NOT NULL,
 	tckn CHAR(11) NOT NULL, -- opt FOR int DATATYPE?
@@ -8,23 +19,23 @@ CREATE TABLE users (
 	created_at DATE DEFAULT CURRENT_DATE
 );
 
-CREATE TABLE login_info (
+CREATE TABLE IF NOT EXISTS login_info (
 	user_id SERIAL REFERENCES users,
 	username CHARACTER VARYING (32) UNIQUE NOT NULL,
 	pwd_hash VARCHAR(60) NOT NULL -- CONVERT USING bcrypt
 );
 
-CREATE TABLE vendor(
+CREATE TABLE IF NOT EXISTS vendor(
 	user_id SERIAL REFERENCES users,
 	brand_name VARCHAR(32) UNIQUE NOT NULL
 );
 
-CREATE TABLE customer(
+CREATE TABLE IF NOT EXISTS customer(
 	user_id SERIAL REFERENCES users,
 	full_name VARCHAR(64) NOT NULL
 );
 
-CREATE TABLE addresses (
+CREATE TABLE IF NOT EXISTS addresses (
 	user_id SERIAL REFERENCES users,
 	address_id SERIAL PRIMARY KEY,
 	
@@ -35,15 +46,3 @@ CREATE TABLE addresses (
 	country CHAR(16) NOT NULL,
 	phone_nr CHAR(10) NOT NULL -- 0(XXX) XXX XX XX
 );
-
--- mongodb'ye başlayınca geri dön:
-
---CREATE TABLE cart (
---	user_id REFERENCES users,
---	item_id text, -- DATA TYPE değişime açık
---	unit_price decimal(6, 2) -- TRY
---);
---
---CREATE TABLE purchases (
---
---);
