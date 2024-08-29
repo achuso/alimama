@@ -71,7 +71,7 @@ public class DatabaseConnection {
 
         if (this.postgresqlClient != null) {
             try {
-                stmt = this.postgresqlClient.prepareStatement(query);
+                stmt = this.postgresqlClient.prepareStatement(query); // sanitizes string <3
                 results = stmt.executeQuery();
             }
             catch (SQLException e) {
