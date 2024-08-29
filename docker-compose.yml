@@ -57,16 +57,16 @@ services:
     ports:
       - "8080:8080"
 
-  # # React.js
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: alimama-frontend-container
-  #   ports:
-  #     - "3000:80"
-  #   networks:
-  #     - my-network
+  # React.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: alimama-frontend-container
+    ports:
+      - "3000:80"
+    networks:
+      - my-network
 
 volumes:
   postgres-data:
