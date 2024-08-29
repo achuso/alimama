@@ -65,47 +65,67 @@ public class DatabaseConnection {
         return false;
     }
 
-    public ResultSet queryPostgres(String query) {
+    public ResultSet querySelectPostgres(String query) {
         ResultSet results = null;
         PreparedStatement stmt = null;
 
         if (this.postgresqlClient != null) {
             try {
-                // Start transaction
-                this.postgresqlClient.setAutoCommit(false);
-
-                stmt = this.postgresqlClient.prepareStatement(query); // handles sanitization <3
+                stmt = this.postgresqlClient.prepareStatement(query);
                 results = stmt.executeQuery();
-                this.postgresqlClient.commit();
-                this.postgresqlClient.setAutoCommit(true);
-
-                // Finish transaction
-                return results;
             }
             catch (SQLException e) {
-                // Rollback
-                try {
-                    if (this.postgresqlClient != null)
-                        this.postgresqlClient.rollback();
-                }
-                catch (SQLException rollback_e) {
-                    System.err.println(rollback_e.getMessage());
-                }
-                System.err.println(e.getMessage());
+                System.err.println("SQL select error: " + e.getMessage());
             }
             finally {
                 try {
-                    if (this.postgresqlClient != null)
-                        this.postgresqlClient.setAutoCommit(true);
-                    if (stmt != null)
-                        stmt.close();
+                    if (stmt != null) stmt.close();
                 }
                 catch (SQLException e) {
                     System.err.println(e.getMessage());
                 }
             }
         }
-        return null;
+        return results;
+    }
+
+    public boolean queryUpdatePostgres(String query) {
+        boolean success = false;
+        PreparedStatement stmt = null;
+
+        if (this.postgresqlClient != null) {
+            try {
+                // Transact start
+                this.postgresqlClient.setAutoCommit(false);
+                stmt = this.postgresqlClient.prepareStatement(query);
+                stmt.executeUpdate();
+                this.postgresqlClient.commit();
+                success = true;
+            }
+            catch (SQLException e) {
+                System.err.println("SQL update error: " + e.getMessage());
+                try {
+                    if (this.postgresqlClient != null) {
+                        this.postgresqlClient.rollback();
+                        System.err.println("Rollback successful");
+                    }
+                }
+                catch (SQLException rollback_e) {
+                    System.err.println("Rollback error: " + rollback_e.getMessage());
+                }
+            }
+            finally {
+                try { // transact end
+                    if (this.postgresqlClient != null)
+                        this.postgresqlClient.setAutoCommit(true);
+                    if (stmt != null) stmt.close();
+                }
+                catch (SQLException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+        }
+        return success;
     }
 
     public boolean disconnectPostgres() throws SQLException {
@@ -136,20 +156,70 @@ public class DatabaseConnection {
         return false;
     }
 
-    public List<Document> queryMongoDB(String collectionName, Document query) {
+    public List<Document> queryReadMongoDB(String collectionName, Document query) {
         List<Document> results = new ArrayList<>();
 
         if (this.mongoClient != null) {
             MongoDatabase database = mongoClient.getDatabase(env.get("mongo_dbname"));
             MongoCollection<Document> collection = database.getCollection(collectionName);
 
-            for (Document doc: collection.find(query)) {
+            for ( Document doc : collection.find(query) )
                 results.add(doc);
-            }
         }
-
         return results;
     }
+
+    // insert, update, or delete
+    public boolean queryExecuteMongoDB(String operationType, String collectionName, Document filter, Document updateDoc, Document newDoc) {
+        if (this.mongoClient == null) {
+            System.err.println("MongoDB Client not connected.");
+            return false;
+        }
+
+        MongoDatabase database = mongoClient.getDatabase(env.get("mongo_dbname"));
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+
+        try {
+            switch (operationType.toLowerCase()) {
+            case "insert":
+                if (newDoc != null) {
+                    collection.insertOne(newDoc);
+                    return true;
+                }
+                else {
+                    System.err.println("Insert failed: no doc provided.");
+                    return false;
+                }
+            case "update":
+                if (filter != null && updateDoc != null) {
+                    collection.updateOne(filter, new Document("$set", updateDoc));
+                    return true;
+                }
+                else {
+                    System.err.println("Update failed: no filter/new doc provided.");
+                    return false;
+                }
+
+            case "delete":
+                if (filter != null) {
+                    collection.deleteOne(filter);
+                    return true;
+                } else {
+                    System.err.println("Delete failed: no filter provided.");
+                    return false;
+                }
+
+            default:
+                System.err.println("Invalid operationType.");
+                return false;
+            }
+        }
+        catch (Exception e) {
+            System.err.println("MongoDB operation error: " + e.getMessage());
+            return false;
+        }
+    }
+
 
     public boolean disconnectMongodb() {
         if (this.mongoClient != null) {
@@ -164,4 +234,5 @@ public class DatabaseConnection {
         }
         return false;
     }
+
 }
