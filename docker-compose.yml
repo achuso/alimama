@@ -10,8 +10,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB_NAME}
     ports:
       - "5432:5432"
-    # volumes:
-    #   - ./database/postgresql:/var/lib/pgsql/data
+    volumes:
+      - postgres-data:/var/lib/pgsql
     networks:
       - my-network
 
@@ -24,7 +24,7 @@ services:
     ports:
       - "27017:27017"
     # volumes:
-    #   - ./database/mongodb:/data/db
+    #   - mongo-data:
     networks:
       - my-network
 
