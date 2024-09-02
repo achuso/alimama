@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class DatabaseConnection {
     private Connection postgresqlClient;
     private final String postgresConnURI;
@@ -221,8 +224,7 @@ public class DatabaseConnection {
             return false;
         }
     }
-
-
+    
     public boolean disconnectMongodb() {
         if (this.mongoClient != null) {
             try {
@@ -235,6 +237,14 @@ public class DatabaseConnection {
             }
         }
         return false;
+    }
+
+    public Connection getPostgresqlClient() {
+        return this.postgresqlClient;
+    }
+
+    public MongoClient getMongoClient() {
+        return this.mongoClient;
     }
 
 }
