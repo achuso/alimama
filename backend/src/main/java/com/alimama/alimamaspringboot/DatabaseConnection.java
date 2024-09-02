@@ -32,7 +32,9 @@ public class DatabaseConnection {
 
     public DatabaseConnection() {
         // PostgreSQL credentials
-        String pgHost = System.getenv("POSTGRES_HOST");
+        // String pgHost = System.getenv("POSTGRES_HOST");
+        // above for when running in docker
+        String pgHost = "localhost";
         String pgPort = System.getenv("POSTGRES_PORT");
         String pgDbName = System.getenv("POSTGRES_DB_NAME");
         this.pgUser = System.getenv("POSTGRES_USER");
@@ -68,13 +70,16 @@ public class DatabaseConnection {
         if (this.postgresqlClient == null) {
             try {
                 this.postgresqlClient = DriverManager.getConnection(this.postgresConnURI, this.pgUser, this.pgPassword);
+//                System.out.println("PostgreSQL connection successful");
                 return true;
-            }
-            catch (SQLException e) {
+            } catch (SQLException e) {
+//                System.err.println("Failed to establish PostgreSQL connection" + e.getMessage());
+                e.printStackTrace();
                 return false;
             }
         }
-        return false;
+//        System.out.println("PostgreSQL connection already established");
+        return true;
     }
 
     public ResultSet querySelectPostgres(String query) {
@@ -83,19 +88,11 @@ public class DatabaseConnection {
 
         if (this.postgresqlClient != null) {
             try {
-                stmt = this.postgresqlClient.prepareStatement(query); // sanitizes string <3
+                stmt = this.postgresqlClient.prepareStatement(query);
                 results = stmt.executeQuery();
             }
             catch (SQLException e) {
                 System.err.println("SQL select error: " + e.getMessage());
-            }
-            finally {
-                try {
-                    if (stmt != null) stmt.close();
-                }
-                catch (SQLException e) {
-                    System.err.println(e.getMessage());
-                }
             }
         }
         return results;
