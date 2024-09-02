@@ -7,8 +7,8 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
-  const [fullName, setFullName] = useState('');
-  const [companyName, setCompanyName] = useState('');
+  const [full_name, setFullName] = useState('');
+  const [brand_name, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [tckn, setTckn] = useState('');
   const [password, setPassword] = useState('');
@@ -24,8 +24,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
       const hashedPassword = bcrypt.hashSync(password, salt);
 
       const registrationData = role === 'Customer' || role === 'Admin'
-        ? { fullName, email, tckn, password: hashedPassword, role }
-        : { companyName, email, tckn, password: hashedPassword, role };
+        ? { full_name, email, tckn, password: hashedPassword, role }
+        : { brand_name, email, tckn, password: hashedPassword, role };
 
       const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
@@ -60,7 +60,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
                 label="Full Name" 
                 type="text" 
                 id="registerFullName" 
-                value={fullName} 
+                value={full_name} 
                 onChange={(e) => setFullName(e.target.value)} 
                 required 
               />
@@ -69,7 +69,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
                 label="Company Name" 
                 type="text" 
                 id="registerCompanyName" 
-                value={companyName} 
+                value={brand_name} 
                 onChange={(e) => setCompanyName(e.target.value)} 
                 required 
               />
