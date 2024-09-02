@@ -5,8 +5,8 @@ services:
   postgres:
     image: postgres:16.3
     container_name: alimama-postgres-container
-    env_file:
-      - ./dotenv.env
+    # env_file:
+    #   - /dotenv.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -23,8 +23,8 @@ services:
   mongo:
     image: mongo:6
     container_name: alimama-mongodb-container
-    env_file:
-      - ./dotenv.env
+    # env_file:
+    #   - ./dotenv.env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -42,8 +42,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: alimama-springboot-container
-    env_file:
-      - ./dotenv.env
+    # env_file:
+    #   - ./dotenv.env
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
