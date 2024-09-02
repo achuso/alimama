@@ -2,7 +2,7 @@ package com.alimama.alimamaspringboot;
 
 public class RegisterRequest {
     private String fullName;
-    private String companyName;
+    private String brand_name;
     private String email;
     private String tckn;
     private String password;
@@ -12,9 +12,9 @@ public class RegisterRequest {
 
     public void setFullName(String fullName) {this.fullName = fullName;}
 
-    public String getCompanyName() {return companyName;}
+    public String getBrandName() {return brand_name;}
 
-    public void setCompanyName(String companyName) {this.companyName = companyName;}
+    public void setBrandName(String brand_name) {this.brand_name = brand_name;}
 
     public String getEmail() {return email;}
 
