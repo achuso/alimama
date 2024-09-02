@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import FormInput from './FormInput.tsx';
+import bcrypt from 'bcryptjs';
 
 interface RegisterFormProps {
   role: string;
@@ -11,15 +12,40 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
   const [email, setEmail] = useState('');
   const [tckn, setTckn] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // if (role === 'Customer') {
-    //   console.log({ fullName, email, tckn, password, role });
-    // } 
-    // else if (role === 'Vendor') {
-    //   console.log({ companyName, email, tckn, password, role });
-    // }
+
+    try {
+      // Hash the password using bcryptjs
+      const salt = bcrypt.genSaltSync(10);
+      const hashedPassword = bcrypt.hashSync(password, salt);
+
+      const registrationData = role === 'Customer' || role === 'Admin'
+        ? { fullName, email, tckn, password: hashedPassword, role }
+        : { companyName, email, tckn, password: hashedPassword, role };
+
+      const response = await fetch('http://localhost:8080/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registrationData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Registration failed');
+      }
+
+      const data = await response.json();
+      setSuccess('Registration successful!'); // Handle success
+      console.log('Registration successful:', data);
+
+    } catch (error) {
+      setError('Registration failed. Please check your details and try again.');
+    }
   };
 
   return (
@@ -84,6 +110,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
           </div>
         </div>
 
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {success && <p style={{ color: 'green' }}>{success}</p>}
+        
         <button type="submit" className="btn btn-primary w-100 mt-3">
           Register
         </button>

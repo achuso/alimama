@@ -4,10 +4,34 @@ import FormInput from './FormInput.tsx';
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    //console.log({ email, password });
+
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      if (!response.ok)
+        throw new Error('Login failed');
+
+      const data = await response.json();
+      // success logic here later
+      // save login token, redirect to main page, etc.
+      console.log('Login successful:', data);
+    } 
+    catch (error) {
+      setError('Login failed. Please check your credentials and try again.');
+    }
   };
 
   return (
@@ -30,6 +54,7 @@ const LoginForm: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)} 
           required 
         />
+        {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit" className="btn btn-primary w-100">
           Login
         </button>
