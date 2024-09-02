@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 	user_id SERIAL PRIMARY KEY,
 	email VARCHAR(50) UNIQUE NOT NULL,
 	tckn CHAR(11) NOT NULL, -- opt FOR int DATATYPE?
+	legal_name VARCHAR(50) UNIQUE NOT NULL,
 	user_role user_role NOT NULL,
 	created_at DATE DEFAULT CURRENT_DATE
 );
@@ -22,16 +23,6 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS login_info (
 	user_id SERIAL REFERENCES users,
 	pwd_hash VARCHAR(60) NOT NULL -- CONVERT USING bcrypt
-);
-
-CREATE TABLE IF NOT EXISTS vendor(
-	user_id SERIAL REFERENCES users,
-	brand_name VARCHAR(32) UNIQUE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS customer(
-	user_id SERIAL REFERENCES users,
-	full_name VARCHAR(64) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS addresses (

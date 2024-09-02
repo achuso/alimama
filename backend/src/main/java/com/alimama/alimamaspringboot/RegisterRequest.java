@@ -1,20 +1,15 @@
 package com.alimama.alimamaspringboot;
 
 public class RegisterRequest {
-    private String fullName;
-    private String brand_name;
+    private String legalName;
     private String email;
     private String tckn;
     private String password;
     private String role;
 
-    public String getFullName() {return fullName;}
+    public String getLegalName() {return legalName;}
 
-    public void setFullName(String fullName) {this.fullName = fullName;}
-
-    public String getBrandName() {return brand_name;}
-
-    public void setBrandName(String brand_name) {this.brand_name = brand_name;}
+    public void setLegalName(String legalName) {this.legalName = legalName;}
 
     public String getEmail() {return email;}
 
