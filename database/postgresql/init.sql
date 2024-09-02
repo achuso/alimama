@@ -13,7 +13,7 @@ ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'Admin';
 
 CREATE TABLE IF NOT EXISTS users (
 	user_id SERIAL PRIMARY KEY,
-	email VARCHAR(50) NOT NULL,
+	email VARCHAR(50) UNIQUE NOT NULL,
 	tckn CHAR(11) NOT NULL, -- opt FOR int DATATYPE?
 	user_role user_role NOT NULL,
 	created_at DATE DEFAULT CURRENT_DATE
