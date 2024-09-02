@@ -54,7 +54,7 @@ public class AuthService {
             }
 
             // Insert into users table
-            String insertUserQuery = "INSERT INTO users (email, tckn, legal_name, user_role) VALUES (?, ?, ?, ?) RETURNING user_id";
+            String insertUserQuery = "INSERT INTO users (email, tckn, legal_name, user_role) VALUES (?, ?, ?, ?::user_role) RETURNING user_id";
             int userId;
             try (PreparedStatement stmt = conn.prepareStatement(insertUserQuery)) {
                 stmt.setString(1, registerRequest.getEmail());
@@ -91,7 +91,8 @@ public class AuthService {
 
             conn.commit(); // Commit transaction
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             if (conn != null) {
                 try {
                     conn.rollback(); // Rollback transaction on error
@@ -100,7 +101,8 @@ public class AuthService {
                 }
             }
             throw e; // Rethrow the original exception
-        } finally {
+        }
+        finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true); // Reset to default auto-commit mode
@@ -121,11 +123,11 @@ public class AuthService {
             ResultSet rs = stmt.executeQuery();
             if (rs != null && rs.next()) {
                 String storedHash = rs.getString("pwd_hash");
-                if (BCrypt.checkpw(password, storedHash)) {
+                if (BCrypt.checkpw(password, storedHash))
                     return generateToken(email);
-                }
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             throw new AuthenticationException("Error during authentication: " + e.getMessage());
         }
         throw new AuthenticationException("Invalid credentials");
