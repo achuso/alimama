@@ -29,9 +29,9 @@ public class AuthService {
     public String authenticate(String email, String password) throws AuthenticationException {
         String query =
                 "SELECT pwd_hash " +
-                        "FROM users u " +
-                        "JOIN login_info l ON u.user_id = l.user_id " +
-                        "WHERE u.email = ?";
+                "FROM users u " +
+                "JOIN login_info l ON u.user_id = l.user_id " +
+                "WHERE u.email = ?";
 
         try (PreparedStatement stmt = databaseConnection.getPostgresqlClient().prepareStatement(query)) {
             stmt.setString(1, email); // Bind the email parameter to the query
