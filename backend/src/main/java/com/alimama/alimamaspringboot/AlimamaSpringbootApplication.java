@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AlimamaSpringbootApplication {
 
     public static void main(String[] args) {
-        System.out.println(System.getenv("POSTGRES_PORT"));
         SpringApplication.run(AlimamaSpringbootApplication.class, args);
     }
 
