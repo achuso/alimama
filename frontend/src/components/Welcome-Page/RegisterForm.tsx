@@ -29,7 +29,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
 
         <div className="row">
           <div className="col-md-6">
-            {role === 'Customer' ? (
+            {role === 'Customer' || role === 'Admin' ? (
               <FormInput 
                 label="Full Name" 
                 type="text" 
