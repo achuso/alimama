@@ -1,78 +1,90 @@
 import React, { useState } from 'react';
+import FormInput from './FormInput.tsx';
 
-const RegisterForm: React.FC = () => {
+interface RegisterFormProps {
+  role: string;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
   const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [tckn, setTckn] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // registration logic here
-    // console.log({ fullName, email, tckn, password });
+    // if (role === 'Customer') {
+    //   console.log({ fullName, email, tckn, password, role });
+    // } 
+    // else if (role === 'Vendor') {
+    //   console.log({ companyName, email, tckn, password, role });
+    // }
   };
 
   return (
     <div className="register-container">
       <form onSubmit={handleSubmit} className="register-form p-3 mb-4">
         <h2>Register</h2>
-        <div className="row g-3 mb-2">
+
+        <div className="row">
           <div className="col-md-6">
-            <label htmlFor="registerFullName" className="col-form-label">
-              Full Name
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="registerFullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
+            {role === 'Customer' ? (
+              <FormInput 
+                label="Full Name" 
+                type="text" 
+                id="registerFullName" 
+                value={fullName} 
+                onChange={(e) => setFullName(e.target.value)} 
+                required 
+              />
+            ) : (
+              <FormInput 
+                label="Company Name" 
+                type="text" 
+                id="registerCompanyName" 
+                value={companyName} 
+                onChange={(e) => setCompanyName(e.target.value)} 
+                required 
+              />
+            )}
           </div>
           <div className="col-md-6">
-            <label htmlFor="registerEmail" className="col-form-label">
-              Email
-            </label>
-            <input
-              type="email"
-              className="form-control"
-              id="registerEmail"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-        <div className="row g-3 mb-2">
-          <div className="col-md-6">
-            <label htmlFor="registerTckn" className="col-form-label">
-              TCKN
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="registerTckn"
-              value={tckn}
-              onChange={(e) => setTckn(e.target.value)}
-              required
-            />
-          </div>
-          <div className="col-md-6">
-            <label htmlFor="registerPassword" className="col-form-label">
-              Password
-            </label>
-            <input
-              type="password"
-              className="form-control"
-              id="registerPassword"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+            <FormInput 
+              label="Email" 
+              type="email" 
+              id="registerEmail" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
             />
           </div>
         </div>
-        <button type="submit" className="btn btn-primary w-100">
+
+        <div className="row">
+          <div className="col-md-6">
+            <FormInput 
+              label="TCKN" 
+              type="text" 
+              id="registerTckn" 
+              value={tckn} 
+              onChange={(e) => setTckn(e.target.value)} 
+              required 
+            />
+          </div>
+          <div className="col-md-6">
+            <FormInput 
+              label="Password" 
+              type="password" 
+              id="registerPassword" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+          </div>
+        </div>
+
+        <button type="submit" className="btn btn-primary w-100 mt-3">
           Register
         </button>
       </form>
