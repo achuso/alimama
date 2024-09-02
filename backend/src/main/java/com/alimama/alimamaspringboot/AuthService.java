@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
+import java.sql.PreparedStatement;
+
 @Service
 public class AuthService {
 
@@ -38,75 +40,57 @@ public class AuthService {
             conn = databaseConnection.getPostgresqlClient();
             conn.setAutoCommit(false); // Start transaction
 
-            // Check if email already exists
-            String checkEmailQuery = String.format(
-                    "SELECT email FROM users WHERE email = '%s'",
-                    registerRequest.getEmail()
-            );
+            // Check if email or legal_name already exists
+            String checkUserQuery = "SELECT email FROM users WHERE email = ? OR legal_name = ?";
 
-            ResultSet rs = databaseConnection.querySelectPostgres(checkEmailQuery);
+            try (PreparedStatement stmt = conn.prepareStatement(checkUserQuery)) {
+                stmt.setString(1, registerRequest.getEmail());
+                stmt.setString(2, registerRequest.getLegal_name());
+                ResultSet rs = stmt.executeQuery();
 
-            if (rs != null && rs.next()) {
-                System.out.println("Email found: " + rs.getString("email"));
-                throw new Exception("Email already in use");
-            } else {
-                System.out.println("No email found, proceeding with registration.");
+                if (rs != null && rs.next()) {
+                    throw new Exception("Email or legal name already in use");
+                }
             }
 
             // Insert into users table
-            String insertUserQuery = String.format(
-                    "INSERT INTO users (email, tckn, user_role, created_at) VALUES ('%s', '%s', '%s', CURRENT_DATE) RETURNING user_id",
-                    registerRequest.getEmail(),
-                    registerRequest.getTckn(),
-                    registerRequest.getRole()
-            );
-            rs = databaseConnection.querySelectPostgres(insertUserQuery);
-
+            String insertUserQuery = "INSERT INTO users (email, tckn, legal_name, user_role) VALUES (?, ?, ?, ?) RETURNING user_id";
             int userId;
-            if (rs != null && rs.next()) {
-                userId = rs.getInt("user_id");
-            } else {
-                throw new SQLException("Failed to retrieve user ID.");
+            try (PreparedStatement stmt = conn.prepareStatement(insertUserQuery)) {
+                stmt.setString(1, registerRequest.getEmail());
+                stmt.setString(2, registerRequest.getTckn());
+                stmt.setString(3, registerRequest.getLegal_name());
+                stmt.setString(4, registerRequest.getRole());
+                System.out.printf("New registration:\n%s\n%s\n%s\n%s\n",
+                        registerRequest.getEmail(), registerRequest.getTckn(),
+                        registerRequest.getLegal_name(), registerRequest.getRole());
+
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs != null && rs.next()) {
+                    userId = rs.getInt("user_id");
+                }
+                else {
+                    throw new SQLException("Failed to retrieve user ID.");
+                }
             }
 
             // Hash the password
             String hashedPassword = BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt());
 
             // Insert into login_info table
-            String insertLoginInfoQuery = String.format(
-                    "INSERT INTO login_info (user_id, pwd_hash) VALUES (%d, '%s')",
-                    userId,
-                    hashedPassword
-            );
-            boolean loginInfoInserted = databaseConnection.queryUpdatePostgres(insertLoginInfoQuery);
-            if (!loginInfoInserted) {
-                throw new SQLException("Failed to insert login info.");
-            }
-
-            // Insert into role-specific table
-            if (registerRequest.getRole().equalsIgnoreCase("Customer")) {
-                String insertCustomerQuery = String.format(
-                        "INSERT INTO customer (user_id, full_name) VALUES (%d, '%s')",
-                        userId,
-                        registerRequest.getFullName()
-                );
-                boolean customerInserted = databaseConnection.queryUpdatePostgres(insertCustomerQuery);
-                if (!customerInserted) {
-                    throw new SQLException("Failed to insert customer info.");
-                }
-            } else if (registerRequest.getRole().equalsIgnoreCase("Vendor")) {
-                String insertVendorQuery = String.format(
-                        "INSERT INTO vendor (user_id, brand_name) VALUES (%d, '%s')",
-                        userId,
-                        registerRequest.getBrandName()
-                );
-                boolean vendorInserted = databaseConnection.queryUpdatePostgres(insertVendorQuery);
-                if (!vendorInserted) {
-                    throw new SQLException("Failed to insert vendor info.");
+            String insertLoginInfoQuery = "INSERT INTO login_info (user_id, pwd_hash) VALUES (?, ?)";
+            try (PreparedStatement stmt = conn.prepareStatement(insertLoginInfoQuery)) {
+                stmt.setInt(1, userId);
+                stmt.setString(2, hashedPassword);
+                int rowsAffected = stmt.executeUpdate();
+                if (rowsAffected != 1) {
+                    throw new SQLException("Failed to insert login info.");
                 }
             }
 
             conn.commit(); // Commit transaction
+
         } catch (Exception e) {
             if (conn != null) {
                 try {
@@ -131,11 +115,10 @@ public class AuthService {
             throw new AuthenticationException("Failed to connect to PostgreSQL.");
         }
 
-        String query = String.format(
-                "SELECT pwd_hash FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = '%s'",
-                email
-        );
-        try (ResultSet rs = databaseConnection.querySelectPostgres(query)) {
+        String query = "SELECT pwd_hash FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
+        try (PreparedStatement stmt = databaseConnection.getPostgresqlClient().prepareStatement(query)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
             if (rs != null && rs.next()) {
                 String storedHash = rs.getString("pwd_hash");
                 if (BCrypt.checkpw(password, storedHash)) {
