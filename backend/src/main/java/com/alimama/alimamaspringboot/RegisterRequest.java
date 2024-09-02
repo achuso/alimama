@@ -1,15 +1,15 @@
 package com.alimama.alimamaspringboot;
 
 public class RegisterRequest {
-    private String legalName;
+    private String legal_name;
     private String email;
     private String tckn;
     private String password;
     private String role;
 
-    public String getLegalName() {return legalName;}
+    public String getLegal_name() {return legal_name;}
 
-    public void setLegalName(String legalName) {this.legalName = legalName;}
+    public void setLegal_name(String legal_name) {this.legal_name = legal_name;}
 
     public String getEmail() {return email;}
 
@@ -23,7 +23,6 @@ public class RegisterRequest {
 
     public void setPassword(String password) {this.password = password;}
 
-    public String getRole() {return role;}
-
-    public void setRole(String role) {this.role = role;}
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }
