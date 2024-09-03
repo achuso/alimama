@@ -18,11 +18,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
     event.preventDefault();
 
     try {
-      // Hash the password using bcryptjs
-      const salt = bcrypt.genSaltSync(10);
-      const hashedPassword = bcrypt.hashSync(password, salt);
-
-      const registrationData = { legal_name, email, tckn, password: hashedPassword, role };
+      const registrationData = { legal_name, email, tckn, pwd_hash:password, role };
 
       const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
