@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import AuthContainer from './components/Welcome-Page/AuthContainer.tsx';
 import NotFound from './components/NotFound.tsx';
