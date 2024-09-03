@@ -6,10 +6,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-//@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
     private final AuthService authService;
@@ -32,13 +34,16 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest registerRequest) {
+        Map<String, String> response = new HashMap<>();
         try {
             authService.registerUser(registerRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+            response.put("message", "User registered successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }
         catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Registration failed: " + e.getMessage());
+            response.put("message", "Registration failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 }
