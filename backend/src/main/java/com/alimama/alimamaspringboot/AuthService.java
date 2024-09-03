@@ -115,19 +115,21 @@ public class AuthService {
             throw new AuthenticationException("Failed to connect to PostgreSQL.");
         }
 
-        String query = "SELECT pwd_hash FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
+        String query = "SELECT l.pwd_hash, u.legal_name, u.user_role FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
         try (PreparedStatement stmt = databaseConnection.getPostgresqlClient().prepareStatement(query)) {
             stmt.setString(1, loginRequest.getEmail());
             ResultSet rs = stmt.executeQuery();
 
             if (rs != null && rs.next()) {
                 String storedHash = rs.getString("pwd_hash");
+                String fullName = rs.getString("legal_name");
+                String role = rs.getString("user_role");
                 System.out.println("Retrieved password hash: " + storedHash);
 
-                // Compare password from frontend and hash from backend
+                // Compare password from frontend with the stored hash
                 if (BCrypt.checkpw(loginRequest.getPassword(), storedHash)) {
                     System.out.println("Password match. Generating token...");
-                    return generateToken(loginRequest.getEmail());
+                    return generateToken(loginRequest.getEmail(), fullName, role);
                 }
                 else {
                     System.err.println("Password mismatch.");
@@ -146,19 +148,18 @@ public class AuthService {
         catch (Exception e) {
             // Catch any other unexpected exceptions and log them
             System.err.println("Unexpected error during authentication: " + e.getMessage());
-            System.out.println(loginRequest.getEmail());
-            System.out.println(loginRequest.getPassword());
-
             throw new AuthenticationException("Unexpected error occurred.");
         }
     }
 
-    private String generateToken(String email) {
+    private String generateToken(String email, String fullName, String role) {
         long now = System.currentTimeMillis();
         long expirationTime = 3600000; // 1 hour in ms
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("fullName", fullName)
+                .claim("role", role)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expirationTime))
                 .signWith(key)
