@@ -24,11 +24,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            String token = authService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+            String token = authService.authenticate(loginRequest);
             return ResponseEntity.ok(new JwtResponse(token));
-        } catch (AuthenticationException e) {
+        }
+        catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
     }
