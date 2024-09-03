@@ -5,6 +5,7 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null); // Added success state
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -21,16 +22,26 @@ const LoginForm: React.FC = () => {
         }),
       });
 
-      if (!response.ok)
-        throw new Error('Login failed');
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || 'Login failed. Please check your credentials and try again.');
+        setSuccess(null);
+        return;
+      }
 
       const data = await response.json();
-      // success logic here later
-      // save login token, redirect to main page, etc.
       console.log('Login successful:', data);
+      setSuccess('Login successful!');
+      setError(null);
+      
+      // further logic here
+      // session tokenization
+      // redirection
+
     } 
     catch (error) {
       setError('Login failed. Please check your credentials and try again.');
+      setSuccess(null);
     }
   };
 
@@ -55,6 +66,7 @@ const LoginForm: React.FC = () => {
           required 
         />
         {error && <p style={{ color: 'red' }}>{error}</p>}
+        {success && <p style={{ color: 'green' }}>{success}</p>} {/* Success message */}
         <button type="submit" className="btn btn-primary w-100">
           Login
         </button>
