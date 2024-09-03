@@ -13,7 +13,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-
 import java.sql.PreparedStatement;
 
 @Service
@@ -45,7 +44,7 @@ public class AuthService {
 
             try (PreparedStatement stmt = conn.prepareStatement(checkUserQuery)) {
                 stmt.setString(1, registerRequest.getEmail());
-                stmt.setString(2, registerRequest.getLegal_name());
+                stmt.setString(2, registerRequest.getLegalName());
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs != null && rs.next()) {
@@ -59,29 +58,27 @@ public class AuthService {
             try (PreparedStatement stmt = conn.prepareStatement(insertUserQuery)) {
                 stmt.setString(1, registerRequest.getEmail());
                 stmt.setString(2, registerRequest.getTckn());
-                stmt.setString(3, registerRequest.getLegal_name());
+                stmt.setString(3, registerRequest.getLegalName());
                 stmt.setString(4, registerRequest.getRole());
                 System.out.printf("New registration:\n%s\n%s\n%s\n%s\n",
                         registerRequest.getEmail(), registerRequest.getTckn(),
-                        registerRequest.getLegal_name(), registerRequest.getRole());
+                        registerRequest.getLegalName(), registerRequest.getRole());
 
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs != null && rs.next()) {
                     userId = rs.getInt("user_id");
-                }
-                else {
+                } else {
                     throw new SQLException("Failed to retrieve user ID.");
                 }
             }
-
-            // Hash the password
-            String hashedPassword = BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt());
 
             // Insert into login_info table
             String insertLoginInfoQuery = "INSERT INTO login_info (user_id, pwd_hash) VALUES (?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(insertLoginInfoQuery)) {
                 stmt.setInt(1, userId);
+                // Ensure the password is hashed before storing it, even if it comes hashed from the frontend
+                String hashedPassword = BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt(10));
                 stmt.setString(2, hashedPassword);
                 int rowsAffected = stmt.executeUpdate();
                 if (rowsAffected != 1) {
@@ -106,31 +103,54 @@ public class AuthService {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true); // Reset to default auto-commit mode
-                } catch (SQLException ignore) {
                 }
+                catch (SQLException ignore) {}
             }
         }
     }
 
-    public String authenticate(String email, String password) throws AuthenticationException {
+    public String authenticate(LoginRequest loginRequest) throws AuthenticationException {
         if (!databaseConnection.connectPostgres()) {
+            System.err.println("Failed to connect to PostgreSQL.");
             throw new AuthenticationException("Failed to connect to PostgreSQL.");
         }
 
         String query = "SELECT pwd_hash FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
         try (PreparedStatement stmt = databaseConnection.getPostgresqlClient().prepareStatement(query)) {
-            stmt.setString(1, email);
+            stmt.setString(1, loginRequest.getEmail());
             ResultSet rs = stmt.executeQuery();
+
             if (rs != null && rs.next()) {
                 String storedHash = rs.getString("pwd_hash");
-                if (BCrypt.checkpw(password, storedHash))
-                    return generateToken(email);
+                System.out.println("Retrieved password hash: " + storedHash);
+
+                // Compare password from frontend and hash from backend
+                if (BCrypt.checkpw(loginRequest.getPassword(), storedHash)) {
+                    System.out.println("Password match. Generating token...");
+                    return generateToken(loginRequest.getEmail());
+                }
+                else {
+                    System.err.println("Password mismatch.");
+                    throw new AuthenticationException("Invalid credentials");
+                }
+            }
+            else {
+                System.err.println("No user found with this email.");
+                throw new AuthenticationException("Invalid credentials");
             }
         }
         catch (SQLException e) {
+            System.err.println("SQL error during authentication: " + e.getMessage());
             throw new AuthenticationException("Error during authentication: " + e.getMessage());
         }
-        throw new AuthenticationException("Invalid credentials");
+        catch (Exception e) {
+            // Catch any other unexpected exceptions and log them
+            System.err.println("Unexpected error during authentication: " + e.getMessage());
+            System.out.println(loginRequest.getEmail());
+            System.out.println(loginRequest.getPassword());
+
+            throw new AuthenticationException("Unexpected error occurred.");
+        }
     }
 
     private String generateToken(String email) {
