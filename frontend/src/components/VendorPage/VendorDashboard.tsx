@@ -24,6 +24,7 @@ const VendorDashboard: React.FC = () => {
     tags: [],
     ratingAvgTotal: 0,
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     fetchItems();
@@ -43,9 +44,27 @@ const VendorDashboard: React.FC = () => {
     setNewItem({ ...newItem, [name]: value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
   const handleCreateItem = async () => {
+    const formData = new FormData();
+    formData.append('productName', newItem.productName);
+    formData.append('numInStock', newItem.numInStock.toString());
+    formData.append('price', newItem.price.toString());
+    selectedFiles.forEach((file, index) => {
+      formData.append('pictures', file);
+    });
+
     try {
-      await axios.post('/api/items', newItem);
+      await axios.post('/api/items', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       setShowModal(false);
       fetchItems();
     } catch (error) {
@@ -64,8 +83,10 @@ const VendorDashboard: React.FC = () => {
 
   return (
     <Container>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Navbar.Brand>Vendor Dashboard</Navbar.Brand>
+      <Navbar bg="dark" variant="dark" expand="lg" className="rounded mb-4 p-3">
+        <Navbar.Brand href="/dashboard" className="fw-bold">
+          Vendor Dashboard
+        </Navbar.Brand>
         <Nav className="ml-auto">
           <Nav.Link href="/account">Account</Nav.Link>
           <Nav.Link href="/logout">Logout</Nav.Link>
@@ -73,7 +94,7 @@ const VendorDashboard: React.FC = () => {
       </Navbar>
 
       <h2 className="mt-4">Your Items</h2>
-      <Button variant="primary" onClick={() => setShowModal(true)}>
+      <Button variant="primary" onClick={() => setShowModal(true)} className="mb-3">
         Create New Item
       </Button>
 
@@ -138,6 +159,16 @@ const VendorDashboard: React.FC = () => {
                 name="price"
                 value={newItem.price}
                 onChange={handleInputChange}
+              />
+            </Form.Group>
+
+            <Form.Group controlId="pictures">
+              <Form.Label>Upload Pictures (Max 3)</Form.Label>
+              <Form.Control
+                type="file"
+                name="pictures"
+                multiple
+                onChange={handleFileChange}
               />
             </Form.Group>
           </Form>
