@@ -103,7 +103,7 @@ const VendorDashboard: React.FC = () => {
           <tr>
             <th>Product Name</th>
             <th>In Stock</th>
-            <th>Price</th>
+            <th>Price (TRY)</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -153,7 +153,7 @@ const VendorDashboard: React.FC = () => {
             </Form.Group>
 
             <Form.Group controlId="price">
-              <Form.Label>Price</Form.Label>
+              <Form.Label>Price (TRY)</Form.Label>
               <Form.Control
                 type="number"
                 name="price"

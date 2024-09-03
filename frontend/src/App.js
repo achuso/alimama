@@ -1,7 +1,7 @@
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import AuthContainer from './components/Welcome-Page/AuthContainer.tsx';
+import AuthContainer from './components/WelcomePage/AuthContainer.tsx';
 import NotFound from './components/NotFound.tsx';
 import PrivateRoute from './components/PrivateRoute.tsx'; 
 import VendorDashboard from './components/VendorPage/VendorDashboard.tsx'
