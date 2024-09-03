@@ -22,7 +22,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
 
-      const registrationData = { legal_name, email, tckn, password: hashedPassword, role }
+      const registrationData = { legal_name, email, tckn, password: hashedPassword, role };
 
       const response = await fetch('http://localhost:8080/api/auth/register', {
         method: 'POST',
@@ -32,18 +32,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ role }) => {
         body: JSON.stringify(registrationData),
       });
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
+      if (response.ok) {
+        const data = await response.json();
+        setSuccess(data.message); // set success msg
+        setError(null); // clear error msg if any
+      } else {
+        const data = await response.json();
+        setError(data.message);
+        setSuccess(null);
       }
-
-      const data = await response.json();
-      setSuccess('Registration successful!'); // Handle success
-      console.log('Registration successful:', data);
 
     } catch (error) {
       setError('Registration failed. Please check your details and try again.');
+      setSuccess(null);
     }
   };
+
 
   return (
     <div className="register-container">
