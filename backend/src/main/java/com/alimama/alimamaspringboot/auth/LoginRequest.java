@@ -15,5 +15,5 @@ public class LoginRequest {
     public void setEmail(String email) {this.email = email;}
 
     public String getPassword() {return pwd_hash;}
-    public void setPassword(String password) {this.pwd_hash = pwd_hash;}
+    public void setPassword(String password) {this.pwd_hash = password;}
 }
