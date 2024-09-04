@@ -33,20 +33,23 @@ public class ItemController {
     }
 
     @PostMapping("/insert")
-    public ResponseEntity<String> insertItem(
-            @RequestParam("productName") String productName,
-            @RequestParam("numInStock") int numInStock,
-            @RequestParam("price") double price
-    ) {
-        // Process the request with productName, numInStock, and price only
-        boolean success = itemsService.insertItemToMongo(productName, numInStock, price, null);
-        if (success) {
+    public ResponseEntity<String> insertItem(@RequestBody ItemRequest itemRequest) {
+
+        int vendorId = itemRequest.getVendorId();
+        String productName = itemRequest.getProductName();
+        int numInStock = itemRequest.getNumInStock();
+        double price = itemRequest.getPrice();
+        List<String> tags = itemRequest.getTags();
+        double ratingAvgTotal = itemRequest.getRatingAvgTotal();
+
+        boolean success = itemsService.insertItemToMongo(vendorId, productName, numInStock, price, null, tags, ratingAvgTotal);
+
+        if (success)
             return ResponseEntity.ok("Item inserted successfully.");
-        }
-        else {
+        else
             return ResponseEntity.status(500).body("Failed to insert item.");
-        }
     }
+
 
     @PutMapping("/modify")
     public ResponseEntity<String> modifyItem(@RequestBody Document filter, @RequestBody Document updatedFields) {

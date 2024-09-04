@@ -27,26 +27,46 @@ public class ItemService {
         return null;
     }
 
-    public boolean insertItemToMongo(String productName, int numInStock, double price, List<MultipartFile> pictures) {
+    public boolean insertItemToMongo(int vendorId, String productName, int numInStock, double price, List<MultipartFile> pictures, List<String> tags, double ratingAvgTotal) {
         if (mongoDBConnection.connectMongoDB()) {
             Document newItem = new Document();
+
+            // Store vendorId as a number, no ObjectId required
+            newItem.append("vendorId", vendorId);
             newItem.append("productName", productName);
             newItem.append("numInStock", numInStock);
             newItem.append("price", price);
 
+            // Handle pictures field, store filenames if available
             List<String> fileNames = new ArrayList<>();
-            if (pictures != null) {
+            if (pictures != null && !pictures.isEmpty()) {
                 for (MultipartFile picture : pictures) {
                     String fileName = picture.getOriginalFilename();
                     fileNames.add(fileName);
                 }
-                newItem.append("pictures", fileNames);
             }
+            newItem.append("pictures", fileNames.isEmpty() ? new ArrayList<>() : fileNames);
 
-            return mongoDBConnection.queryExecuteMongoDB("insert", collectionName, null, null, null);
+            // Handle tags, store them or set to an empty array if null
+            newItem.append("tags", tags != null ? tags : new ArrayList<>());
+
+            // Store the rating
+            newItem.append("ratingAvgTotal", ratingAvgTotal);
+
+            try {
+                // Attempt to insert the document into MongoDB
+                return mongoDBConnection.queryExecuteMongoDB("insert", "items", null, null, newItem);
+            } catch (Exception e) {
+                System.err.println("Error inserting item to MongoDB: " + e.getMessage());
+                return false;
+            }
+        } else {
+            System.err.println("Failed to connect to MongoDB");
+            return false;
         }
-        return false;
     }
+
+
 
     public boolean modifyItemInMongo(Document filter, Document updatedFields) {
         if (mongoDBConnection.connectMongoDB()) {
