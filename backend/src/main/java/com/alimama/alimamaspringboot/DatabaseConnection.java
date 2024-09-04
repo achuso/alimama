@@ -46,7 +46,9 @@ public class DatabaseConnection {
         this.postgresConnURI = String.format("jdbc:postgresql://%s:%s/%s", pgHost, pgPort, pgDbName);
 
         // MongoDB credentials
-        String mongoHost = System.getenv("MONGO_HOST");
+        //String mongoHost = System.getenv("MONGO_HOST");
+        // above for when running in a docker
+        String mongoHost = "localhost";
         String mongoPortStr = System.getenv("MONGO_PORT");
         this.mongoDbName = System.getenv("MONGO_DB_NAME");
         String mongoUser = System.getenv("MONGO_INITDB_ROOT_USERNAME");
@@ -64,6 +66,7 @@ public class DatabaseConnection {
         }
 
         this.mongoConnURI = String.format("mongodb://%s:%s@%s:%d/%s", mongoUser, mongoPassword, mongoHost, mongoPort, mongoDbName);
+        System.out.println(mongoConnURI);
     }
 
     public boolean connectPostgres() {
@@ -152,15 +155,19 @@ public class DatabaseConnection {
         if (this.mongoClient == null) {
             try {
                 this.mongoClient = MongoClients.create(this.mongoConnURI);
+                MongoDatabase database = this.mongoClient.getDatabase(this.mongoDbName);
+                database.runCommand(new Document("ping", 1));
+                System.out.println("abc");
                 return true;
             }
             catch (Exception e) {
-                System.err.println(e.getMessage());
+                System.out.println("Failed to connect to MongoDB" + e.getMessage());
                 return false;
             }
         }
-        return false;
+        return true;
     }
+
 
     public List<Document> queryReadMongoDB(String collectionName, Document query) {
         List<Document> results = new ArrayList<>();

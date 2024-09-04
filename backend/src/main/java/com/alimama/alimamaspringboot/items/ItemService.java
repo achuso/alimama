@@ -42,7 +42,6 @@ public class ItemService {
                 }
                 newItem.append("pictures", fileNames);
             }
-
             return databaseConnection.queryExecuteMongoDB("insert", collectionName, null, null, newItem);
         }
         return false;
