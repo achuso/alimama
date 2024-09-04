@@ -1,6 +1,6 @@
 package com.alimama.alimamaspringboot.items;
 
-import com.alimama.alimamaspringboot.DatabaseConnection;
+import com.alimama.alimamaspringboot.MongoDBConnection;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,23 +12,23 @@ import java.util.List;
 @Service
 public class ItemService {
 
-    private final DatabaseConnection databaseConnection;
+    private final MongoDBConnection mongoDBConnection;
     private final String collectionName = "items";
 
     @Autowired
-    public ItemService(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
+    public ItemService(MongoDBConnection mongoDBConnection) {
+        this.mongoDBConnection = mongoDBConnection;
     }
 
     // Retrieve items from MongoDB with a filter
     public List<Document> retrieveItemsFromMongo(Document filter) {
-        if (databaseConnection.connectMongodb())
-            return databaseConnection.queryReadMongoDB(collectionName, filter);
+        if (mongoDBConnection.connectMongoDB())
+            return mongoDBConnection.queryReadMongoDB(collectionName, filter);
         return null;
     }
 
     public boolean insertItemToMongo(String productName, int numInStock, double price, List<MultipartFile> pictures) {
-        if (databaseConnection.connectMongodb()) {
+        if (mongoDBConnection.connectMongoDB()) {
             Document newItem = new Document();
             newItem.append("productName", productName);
             newItem.append("numInStock", numInStock);
@@ -42,22 +42,23 @@ public class ItemService {
                 }
                 newItem.append("pictures", fileNames);
             }
-            return databaseConnection.queryExecuteMongoDB("insert", collectionName, null, null, newItem);
+
+            return mongoDBConnection.queryExecuteMongoDB("insert", collectionName, null, null, null);
         }
         return false;
     }
 
     public boolean modifyItemInMongo(Document filter, Document updatedFields) {
-        if (databaseConnection.connectMongodb()) {
+        if (mongoDBConnection.connectMongoDB()) {
             Document updateDoc = new Document("$set", updatedFields);
-            return databaseConnection.queryExecuteMongoDB("update", collectionName, filter, updateDoc, null);
+            return mongoDBConnection.queryExecuteMongoDB("update", collectionName, filter, updateDoc, null);
         }
         return false;
     }
 
     public boolean deleteItemFromMongo(Document filter) {
-        if (databaseConnection.connectMongodb()) {
-            return databaseConnection.queryExecuteMongoDB("delete", collectionName, filter, null, null);
+        if (mongoDBConnection.connectMongoDB()) {
+            return mongoDBConnection.queryExecuteMongoDB("delete", collectionName, filter, null, null);
         }
         return false;
     }

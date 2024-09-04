@@ -1,6 +1,6 @@
 package com.alimama.alimamaspringboot.auth;
 
-import com.alimama.alimamaspringboot.DatabaseConnection;
+import com.alimama.alimamaspringboot.PostgreSQLConnection;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -20,12 +20,12 @@ import java.sql.PreparedStatement;
 @Service
 public class AuthService {
 
-    private final DatabaseConnection databaseConnection;
+    private final PostgreSQLConnection databaseConnection;
     private final Key key;
 
     @Autowired
-    public AuthService(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
+    public AuthService(PostgreSQLConnection postgreSQLConnection) {
+        this.databaseConnection = postgreSQLConnection;
         this.key = Keys.secretKeyFor(SignatureAlgorithm.HS256); // HMAC-SHA256 key
     }
 
