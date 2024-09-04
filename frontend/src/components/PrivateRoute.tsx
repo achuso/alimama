@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { deleteTokens } from './DeleteToken.tsx';
 
 interface JwtPayload {
   exp: number;
@@ -21,9 +22,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
 
   if (!authToken || isTokenExpired(authToken)) {
     // remove tokens if expired
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userFullName');
+    deleteTokens();
     return <Navigate to="/login" />;
   }
 
