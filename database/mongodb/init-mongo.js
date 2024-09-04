@@ -38,7 +38,7 @@ const itemSchema = new mongoose.Schema({
   },
   tags: { type: [String], enum: tagsEnum, default: [] },
   ratingAvgTotal: { type: Number, default: 0 }
-});
+}, {collection: "items"});
 
 // Cart x Item schemas
 const cartItemSchema = new mongoose.Schema({
@@ -53,7 +53,7 @@ const cartSchema = new mongoose.Schema({
   items: [cartItemSchema],
   total_amount: { type: Number, default: 0 },
   created_at: { type: Date, default: Date.now }
-});
+}, {collection: "carts"});
 
 // Purchase x Item schema (for multiple items in purchase)
 const purchaseItemSchema = new mongoose.Schema({
@@ -70,7 +70,7 @@ const purchaseSchema = new mongoose.Schema({
   total_amount: { type: Number, required: true },
   purchase_date: { type: Date, default: Date.now },
   payment_status: { type: String, default: 'Pending' }
-});
+}, {collection: "purchases"});
 
 // Review schema
 const reviewSchema = new mongoose.Schema({
@@ -80,7 +80,7 @@ const reviewSchema = new mongoose.Schema({
   likes: { type: Number, default: 0 },
   dislikes: { type: Number, default: 0 },
   reviewedAt: { type: Date, default: Date.now }
-});
+}, {collection: "reviews"});
 
 // Create models
 const Item = mongoose.model('Item', itemSchema);
