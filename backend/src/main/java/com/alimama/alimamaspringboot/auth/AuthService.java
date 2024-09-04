@@ -79,7 +79,6 @@ public class AuthService {
             String insertLoginInfoQuery = "INSERT INTO login_info (user_id, pwd_hash) VALUES (?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(insertLoginInfoQuery)) {
                 stmt.setInt(1, userId);
-                // Ensure the password is hashed before storing it, even if it comes hashed from the frontend
                 String hashedPassword = BCrypt.hashpw(registerRequest.getPassword(), BCrypt.gensalt(10));
                 stmt.setString(2, hashedPassword);
                 int rowsAffected = stmt.executeUpdate();
@@ -90,8 +89,7 @@ public class AuthService {
 
             conn.commit(); // Commit transaction
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             if (conn != null) {
                 try {
                     conn.rollback(); // Rollback transaction on error
@@ -100,13 +98,11 @@ public class AuthService {
                 }
             }
             throw e; // Rethrow the original exception
-        }
-        finally {
+        } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true); // Reset to default auto-commit mode
-                }
-                catch (SQLException ignore) {}
+                } catch (SQLException ignore) {}
             }
         }
     }
@@ -117,12 +113,13 @@ public class AuthService {
             throw new AuthenticationException("Failed to connect to PostgreSQL.");
         }
 
-        String query = "SELECT l.pwd_hash, u.legal_name, u.user_role FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
+        String query = "SELECT u.user_id, l.pwd_hash, u.legal_name, u.user_role FROM users u JOIN login_info l ON u.user_id = l.user_id WHERE u.email = ?";
         try (PreparedStatement stmt = databaseConnection.getPostgresqlClient().prepareStatement(query)) {
             stmt.setString(1, loginRequest.getEmail());
             ResultSet rs = stmt.executeQuery();
 
             if (rs != null && rs.next()) {
+                int userId = rs.getInt("user_id");
                 String storedHash = rs.getString("pwd_hash");
                 String fullName = rs.getString("legal_name");
                 String role = rs.getString("user_role");
@@ -131,35 +128,33 @@ public class AuthService {
                 // Compare password from frontend with the stored hash
                 if (BCrypt.checkpw(loginRequest.getPassword(), storedHash)) {
                     System.out.println("Password match. Generating token...");
-                    return generateToken(loginRequest.getEmail(), fullName, role);
-                }
-                else {
+                    return generateToken(userId, loginRequest.getEmail(), fullName, role);
+                } else {
                     System.err.println("Password mismatch.");
                     throw new AuthenticationException("Invalid credentials");
                 }
-            }
-            else {
+            } else {
                 System.err.println("No user found with this email.");
                 throw new AuthenticationException("Invalid credentials");
             }
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             System.err.println("SQL error during authentication: " + e.getMessage());
             throw new AuthenticationException("Error during authentication: " + e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // Catch any other unexpected exceptions and log them
             System.err.println("Unexpected error during authentication: " + e.getMessage());
             throw new AuthenticationException("Unexpected error occurred.");
         }
     }
 
-    private String generateToken(String email, String fullName, String role) {
+    // Include user_id in the token
+    private String generateToken(int userId, String email, String fullName, String role) {
         long now = System.currentTimeMillis();
         long expirationTime = 3600000; // 1 hour in ms
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("userId", userId)  // Include user_id in the token
                 .claim("fullName", fullName)
                 .claim("role", role)
                 .setIssuedAt(new Date(now))

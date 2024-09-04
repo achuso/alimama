@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Navbar, Nav, Table, Button, Modal, Form } from 'react-bootstrap';
-import axios from 'axios';
 
 interface Item {
   _id: string;
@@ -24,58 +23,80 @@ const VendorDashboard: React.FC = () => {
     tags: [],
     ratingAvgTotal: 0,
   });
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
+  // Fetch items using the fetch API
   const fetchItems = async () => {
     try {
-      const response = await axios.get<Item[]>('/api/items');
-      setItems(response.data);
+      const response = await fetch('http://localhost:8080/api/items/retrieve', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setItems(data);
     } catch (error) {
       console.error('Error fetching items:', error);
     }
   };
 
+  // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewItem({ ...newItem, [name]: value });
   };
 
+  // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setSelectedFiles(Array.from(e.target.files));
     }
   };
 
+  // Create a new item using fetch API
   const handleCreateItem = async () => {
     const formData = new FormData();
     formData.append('productName', newItem.productName);
     formData.append('numInStock', newItem.numInStock.toString());
     formData.append('price', newItem.price.toString());
-    selectedFiles.forEach((file, index) => {
-      formData.append('pictures', file);
-    });
-
+  
     try {
-      await axios.post('/api/items', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await fetch('http://localhost:8080/api/items/insert', {
+        method: 'POST',
+        body: formData,
       });
-      setShowModal(false);
-      fetchItems();
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Error creating item: ${errorText}`);
+      } else {
+        setShowModal(false);
+        fetchItems();
+      }
     } catch (error) {
       console.error('Error creating item:', error);
     }
-  };
+  };  
 
+  // Delete an item using fetch API
   const handleDeleteItem = async (id: string) => {
     try {
-      await axios.delete(`/api/items/${id}`);
-      fetchItems();
+      const response = await fetch(`http://localhost:8080/api/items/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ _id: id }),
+      });
+      if (response.ok) {
+        fetchItems();
+      } else {
+        console.error('Error deleting item:', response.statusText);
+      }
     } catch (error) {
       console.error('Error deleting item:', error);
     }
@@ -108,7 +129,7 @@ const VendorDashboard: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
+          {items.map((item) => (
             <tr key={item._id}>
               <td>{item.productName}</td>
               <td>{item.numInStock}</td>
