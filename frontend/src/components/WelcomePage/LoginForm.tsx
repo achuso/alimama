@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormInput from './FormInput.tsx';
-import { jwtDecode } from 'jwt-decode';
-
+import { jwtDecode } from 'jwt-decode'; 
 
 interface JwtPayload {
-  sub: string;
+  sub: string;     
   fullName: string;
   role: string;
+  userId: number;  
   exp: number;
 }
 
@@ -41,23 +41,27 @@ const LoginForm: React.FC = () => {
       }
 
       // Store login token and decode it
-      const data = await response.text(); // Retrieve the token as a string
-      localStorage.setItem('authToken', data);
+      const token = await response.text(); // Retrieve the token as a string
+      localStorage.setItem('authToken', token);
 
-      const decoded: JwtPayload = jwtDecode(data);
-      const { fullName, role } = decoded;
+      // Decode the token to extract user information
+      const decoded: JwtPayload = jwtDecode(token);
+      const { fullName, role, userId } = decoded;
 
+      // Store the user info in localStorage
       localStorage.setItem('userRole', role);
       localStorage.setItem('userFullName', fullName);
+      localStorage.setItem('userId', userId.toString());  // Store userId in localStorage
 
       setSuccess(`Login successful! Welcome, ${fullName}. Redirecting...`);
       setError(null);
 
+      // Redirect based on role
       setTimeout(() => {
         if (role === 'Vendor') {
           navigate('/vendor-dashboard');
         } 
-        // handle login conditions for other roles
+        // Other role-based navigation here
       }, 2000);
 
     } 
