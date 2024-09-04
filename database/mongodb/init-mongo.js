@@ -6,7 +6,8 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const mongo_username = process.env.MONGO_INITDB_ROOT_USERNAME;
 const mongo_password = process.env.MONGO_INITDB_ROOT_PASSWORD;
 const mongo_dbname = process.env.MONGO_DB_NAME;
-const mongo_host = process.env.MONGO_HOST;
+//const mongo_host = process.env.MONGO_HOST;
+const mongo_host = "localhost";
 const mongo_port = process.env.MONGO_PORT;
 
 // Connect to MongoDB
@@ -23,7 +24,7 @@ const tagsEnum = ['Laptop', 'Unisex T-Shirt', 'Jean', 'Watch', 'Tea'];
 // Item schema
 const itemSchema = new mongoose.Schema({
   productName: { type: String, required: true },
-  vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: true }, // from relational db
+  vendorId: { type: Number, required: true }, // vendorId is now treated as a serial number
   numInStock: { type: Number, required: true },
   price: { type: Number, required: true },
   pictures: { 
@@ -38,7 +39,7 @@ const itemSchema = new mongoose.Schema({
   },
   tags: { type: [String], enum: tagsEnum, default: [] },
   ratingAvgTotal: { type: Number, default: 0 }
-}, {collection: "items"});
+}, { collection: "items" });
 
 // Cart x Item schemas
 const cartItemSchema = new mongoose.Schema({
@@ -53,7 +54,7 @@ const cartSchema = new mongoose.Schema({
   items: [cartItemSchema],
   total_amount: { type: Number, default: 0 },
   created_at: { type: Date, default: Date.now }
-}, {collection: "carts"});
+}, { collection: "carts" });
 
 // Purchase x Item schema (for multiple items in purchase)
 const purchaseItemSchema = new mongoose.Schema({
@@ -70,7 +71,7 @@ const purchaseSchema = new mongoose.Schema({
   total_amount: { type: Number, required: true },
   purchase_date: { type: Date, default: Date.now },
   payment_status: { type: String, default: 'Pending' }
-}, {collection: "purchases"});
+}, { collection: "purchases" });
 
 // Review schema
 const reviewSchema = new mongoose.Schema({
@@ -80,19 +81,19 @@ const reviewSchema = new mongoose.Schema({
   likes: { type: Number, default: 0 },
   dislikes: { type: Number, default: 0 },
   reviewedAt: { type: Date, default: Date.now }
-}, {collection: "reviews"});
+}, { collection: "reviews" });
 
 // Create models
 const Item = mongoose.model('Item', itemSchema);
 const Review = mongoose.model('Review', reviewSchema);
 const Cart = mongoose.model('Cart', cartSchema);
 
-// sample data
+// Sample data
 async function initDatabase() {
   try {
     const newItem = new Item({
       productName: 'Sample Product',
-      vendorId: new mongoose.Types.ObjectId(),
+      vendorId: 12345, // Vendor ID is treated as a serial number, not ObjectId
       numInStock: 10,
       price: 99.99,
       pictures: ['pic1.jpg', 'pic2.jpg'],
@@ -117,7 +118,7 @@ async function initDatabase() {
   } 
   catch (error) {
     console.error('DB init failed', error);
-  }
+  } 
   finally {
     mongoose.connection.close(() => {
       console.log('Mongo connection closed');
