@@ -1,4 +1,6 @@
-package com.alimama.alimamaspringboot;
+package com.alimama.alimamaspringboot.items;
+
+import com.alimama.alimamaspringboot.DatabaseConnection;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;

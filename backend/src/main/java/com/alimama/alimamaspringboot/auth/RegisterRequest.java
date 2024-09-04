@@ -1,4 +1,4 @@
-package com.alimama.alimamaspringboot;
+package com.alimama.alimamaspringboot.auth;
 
 public class RegisterRequest {
     private String legal_name;

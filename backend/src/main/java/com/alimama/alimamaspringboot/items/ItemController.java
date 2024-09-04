@@ -1,4 +1,4 @@
-package com.alimama.alimamaspringboot;
+package com.alimama.alimamaspringboot.items;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;

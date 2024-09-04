@@ -1,4 +1,6 @@
-package com.alimama.alimamaspringboot;
+package com.alimama.alimamaspringboot.auth;
+
+import com.alimama.alimamaspringboot.JwtResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

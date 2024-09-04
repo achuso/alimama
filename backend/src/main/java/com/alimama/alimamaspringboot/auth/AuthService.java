@@ -1,4 +1,6 @@
-package com.alimama.alimamaspringboot;
+package com.alimama.alimamaspringboot.auth;
+
+import com.alimama.alimamaspringboot.DatabaseConnection;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
