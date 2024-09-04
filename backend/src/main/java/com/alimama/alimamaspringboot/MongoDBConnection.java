@@ -13,14 +13,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MongoDBConnection {
+    private final MongoClient mongo;
     private MongoClient mongoClient;
     private final String mongoConnURI;
     private final String mongoDbName;
 
-    public MongoDBConnection() {
+    public MongoDBConnection(MongoClient mongo) {
         // MongoDB credentials
-        String mongoHost = "localhost";
-        String mongoPortStr = System.getenv("MONGO_PORT");
+        String mongoHost;
+        mongoHost = "localhost";
+//        if (System.getenv("MONGO_HOST") != null)
+//            mongoHost = System.getenv("MONGO_HOST");
+//        else mongoHost = "localhost";
+
+        String mongoPortStr;
+        if (System.getenv("MONGO_PORT") != null)
+            mongoPortStr = System.getenv("MONGO_PORT");
+        else mongoPortStr = "27017";
+
         this.mongoDbName = System.getenv("MONGO_DB_NAME");
         String mongoUser = System.getenv("MONGO_INITDB_ROOT_USERNAME");
         String mongoPassword = System.getenv("MONGO_INITDB_ROOT_PASSWORD");
@@ -31,11 +41,14 @@ public class MongoDBConnection {
         int mongoPort;
         try {
             mongoPort = Integer.parseInt(mongoPortStr);
-        } catch (NumberFormatException e) {
+        }
+        catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid port number for MongoDB: " + mongoPortStr);
         }
 
-        this.mongoConnURI = String.format("mongodb://%s:%s@%s:%d/%s", mongoUser, mongoPassword, mongoHost, mongoPort, mongoDbName);
+        this.mongoConnURI = String.format("mongodb://%s:%s@%s:%d/%s?authSource=admin",
+                mongoUser, mongoPassword, mongoHost, mongoPort, mongoDbName);
+        this.mongo = mongo;
     }
 
     public boolean connectMongoDB() {
