@@ -1,14 +1,17 @@
 package com.alimama.alimamaspringboot.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class RegisterRequest {
-    private String legal_name;
+    @JsonProperty("legal_name")
+    private String legalName;
     private String email;
     private String tckn;
     private String pwd_hash;
     private String role;
 
-    public String getLegalName() {return legal_name;}
-    public void setLegalName(String legal_name) {this.legal_name = legal_name;}
+    public String getLegalName() {return legalName;}
+    public void setLegalName(String legalName) {this.legalName = legalName;}
 
     public String getEmail() {return email;}
     public void setEmail(String email) {this.email = email;}

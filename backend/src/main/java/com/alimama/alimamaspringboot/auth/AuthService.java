@@ -70,7 +70,8 @@ public class AuthService {
 
                 if (rs != null && rs.next()) {
                     userId = rs.getInt("user_id");
-                } else {
+                }
+                else {
                     throw new SQLException("Failed to retrieve user ID.");
                 }
             }
