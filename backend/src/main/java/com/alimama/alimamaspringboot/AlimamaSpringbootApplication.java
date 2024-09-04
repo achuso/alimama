@@ -6,9 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class AlimamaSpringbootApplication {
     public static void main(String[] args) {
-        DatabaseConnection abc = new DatabaseConnection();
+        MongoDBConnection abc = new MongoDBConnection();
 
-        System.out.println(abc.connectMongodb());
+        System.out.println(abc.connectMongoDB());
 
         SpringApplication.run(AlimamaSpringbootApplication.class, args);
     }
