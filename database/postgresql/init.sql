@@ -25,7 +25,7 @@
 						pwd_hash VARCHAR(60) NOT NULL -- CONVERT USING bcrypt
 					);
 
-					CREATE TABLE IF NOT EXISTS addresses (
+					CREATE TABLE IF NOT EXISTS addresses (	
 						user_id SERIAL REFERENCES users,
 						address_id SERIAL PRIMARY KEY,
 						
