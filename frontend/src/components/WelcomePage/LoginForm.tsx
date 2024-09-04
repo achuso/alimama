@@ -51,7 +51,7 @@ const LoginForm: React.FC = () => {
       // Store the user info in localStorage
       localStorage.setItem('userRole', role);
       localStorage.setItem('userFullName', fullName);
-      localStorage.setItem('userId', userId.toString());  // Store userId in localStorage
+      localStorage.setItem('userId', userId.toString());
 
       setSuccess(`Login successful! Welcome, ${fullName}. Redirecting...`);
       setError(null);

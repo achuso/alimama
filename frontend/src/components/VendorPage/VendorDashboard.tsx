@@ -3,6 +3,7 @@ import { Container, Navbar, Nav, Table, Button, Modal, Form } from 'react-bootst
 
 interface Item {
   _id: string;
+  vendorId: string;
   productName: string;
   numInStock: number;
   price: number;
@@ -16,6 +17,7 @@ const VendorDashboard: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [newItem, setNewItem] = useState<Item>({
     _id: '',
+    vendorId: '',
     productName: '',
     numInStock: 0,
     price: 0,
@@ -52,22 +54,28 @@ const VendorDashboard: React.FC = () => {
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
-    }
+
   };
 
-  // Create a new item using fetch API
   const handleCreateItem = async () => {
-    const formData = new FormData();
-    formData.append('productName', newItem.productName);
-    formData.append('numInStock', newItem.numInStock.toString());
-    formData.append('price', newItem.price.toString());
+    const vendorId = Number(localStorage.getItem('userID'));
+  
+    const itemData = {
+      vendorId: vendorId,
+      productName: newItem.productName,
+      numInStock: Number(newItem.numInStock),
+      price: Number(newItem.price),
+      tags: newItem.tags || [],
+      ratingAvgTotal: newItem.ratingAvgTotal || 0
+    };
   
     try {
       const response = await fetch('http://localhost:8080/api/items/insert', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(itemData),
       });
   
       if (!response.ok) {
@@ -75,12 +83,14 @@ const VendorDashboard: React.FC = () => {
         console.error(`Error creating item: ${errorText}`);
       } else {
         setShowModal(false);
-        fetchItems();
+        fetchItems(); // Refresh the list of items
       }
     } catch (error) {
       console.error('Error creating item:', error);
     }
-  };  
+  };
+  
+  
 
   // Delete an item using fetch API
   const handleDeleteItem = async (id: string) => {
