@@ -42,6 +42,7 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave, item }) => 
     onSave(newItem);
   };
 
+
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>

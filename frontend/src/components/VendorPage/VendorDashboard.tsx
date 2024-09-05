@@ -34,6 +34,20 @@ const VendorDashboard: React.FC = () => {
     setShowModal(false);
   };
 
+  const handleDeleteItem = (id: any) => {
+    // Check if ID is an object and has a specific property indicating it’s an ObjectId
+    if (typeof id === 'object' && id !== null) {
+        id = id.toString(); // Convert object to string if applicable
+    }
+
+    if (typeof id === 'string' && id.trim() !== '') {
+        console.log('Deleting item with ID:', id);
+        deleteItem(id);
+    } else {
+        console.error('ID should be a valid string:', id);
+    }
+  };
+
   return (
     <Container>
       <DashboardNavbar title="Vendor Dashboard" />
@@ -61,7 +75,7 @@ const VendorDashboard: React.FC = () => {
         </thead>
         <tbody>
           {items.map((item) => (
-            <tr key={item._id}>
+            <tr key={item._id.toString()}>
               <td>{item.productName}</td>
               <td>{item.numInStock}</td>
               <td>{item.price.toFixed(2)}</td>
@@ -73,7 +87,8 @@ const VendorDashboard: React.FC = () => {
                 >
                   Edit
                 </Button>
-                <Button variant="danger" onClick={() => deleteItem(item._id)}>
+                <Button variant="danger" 
+                  onClick={() => handleDeleteItem(item._id as string)}>
                   Delete
                 </Button>
               </td>

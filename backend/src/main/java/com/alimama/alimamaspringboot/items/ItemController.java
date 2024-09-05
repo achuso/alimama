@@ -52,20 +52,37 @@ public class ItemController {
 
 
     @PutMapping("/modify")
-    public ResponseEntity<String> modifyItem(@RequestBody Document filter, @RequestBody Document updatedFields) {
+    public ResponseEntity<String> modifyItem(@RequestBody ModifyRequest modifyRequest) {
+        Document filter = modifyRequest.getFilter();
+        Document updatedFields = modifyRequest.getUpdatedFields();
+
+        // Add logs to check what's coming in the request
+        System.out.println("Filter: " + filter.toJson());
+        System.out.println("Updated Fields: " + updatedFields.toJson());
+
         boolean success = itemsService.modifyItemInMongo(filter, updatedFields);
-        if (success)
+        if (success) {
             return ResponseEntity.ok("Item modified successfully.");
-        else
+        }
+        else {
             return ResponseEntity.status(404).body("Failed to modify item.");
+        }
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteItem(@RequestBody Document filter) {
-        boolean success = itemsService.deleteItemFromMongo(filter);
-        if (success)
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteItem(@PathVariable String id) {
+        // Validate ObjectId format using the instance method of ItemService
+        if (!itemsService.isValidObjectId(id)) {
+            return ResponseEntity.badRequest().body("Invalid ID format.");
+        }
+
+        // Attempt to delete the item
+        boolean success = itemsService.deleteItemFromMongo(id);
+        if (success) {
             return ResponseEntity.ok("Item deleted successfully.");
-        else
+        }
+        else {
             return ResponseEntity.status(404).body("Failed to delete item.");
+        }
     }
 }

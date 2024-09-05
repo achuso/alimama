@@ -2,18 +2,21 @@ package com.alimama.alimamaspringboot.items;
 
 import com.alimama.alimamaspringboot.MongoDBConnection;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 public class ItemService {
 
     private final MongoDBConnection mongoDBConnection;
     private final String collectionName = "items";
+    private static final Pattern OBJECT_ID_PATTERN = Pattern.compile("^[0-9a-fA-F]{24}$");
 
     @Autowired
     public ItemService(MongoDBConnection mongoDBConnection) {
@@ -22,8 +25,18 @@ public class ItemService {
 
     // Retrieve items from MongoDB with a filter
     public List<Document> retrieveItemsFromMongo(Document filter) {
-        if (mongoDBConnection.connectMongoDB())
-            return mongoDBConnection.queryReadMongoDB(collectionName, filter);
+        if (mongoDBConnection.connectMongoDB()) {
+            List<Document> documents = mongoDBConnection.queryReadMongoDB(collectionName, filter);
+
+            // Convert ObjectId to String
+            for (Document doc : documents) {
+                Object id = doc.get("_id");
+                if (id instanceof org.bson.types.ObjectId) {
+                    doc.put("_id", id.toString()); // Convert ObjectId to String
+                }
+            }
+            return documents;
+        }
         return null;
     }
 
@@ -55,7 +68,7 @@ public class ItemService {
 
             try {
                 // Attempt to insert the document into MongoDB
-                return mongoDBConnection.queryExecuteMongoDB("insert", "items", null, null, newItem);
+                return mongoDBConnection.queryExecuteMongoDB("insert", collectionName, null, null, newItem);
             } catch (Exception e) {
                 System.err.println("Error inserting item to MongoDB: " + e.getMessage());
                 return false;
@@ -66,20 +79,41 @@ public class ItemService {
         }
     }
 
-
-
     public boolean modifyItemInMongo(Document filter, Document updatedFields) {
         if (mongoDBConnection.connectMongoDB()) {
+            // Make sure that the _id is converted to ObjectId if it is not already an ObjectId
+            if (filter.containsKey("_id") && !(filter.get("_id") instanceof ObjectId)) {
+                filter.put("_id", new ObjectId(filter.getString("_id")));  // Convert the _id to ObjectId
+            }
+
             Document updateDoc = new Document("$set", updatedFields);
             return mongoDBConnection.queryExecuteMongoDB("update", collectionName, filter, updateDoc, null);
         }
         return false;
     }
 
-    public boolean deleteItemFromMongo(Document filter) {
+    public boolean isValidObjectId(String id) {
+        if (id == null) {
+            return false;
+        }
+        return OBJECT_ID_PATTERN.matcher(id).matches();
+    }
+
+    // Delete an item by its ID
+    public boolean deleteItemFromMongo(String id) {
+        if (!isValidObjectId(id)) {
+            throw new IllegalArgumentException("Invalid ID format.");
+        }
+
         if (mongoDBConnection.connectMongoDB()) {
+            // Create a filter to find the item by _id
+            Document filter = new Document("_id", new ObjectId(id));
+            // Attempt to delete the item
             return mongoDBConnection.queryExecuteMongoDB("delete", collectionName, filter, null, null);
         }
-        return false;
+        else {
+            System.err.println("Failed to connect to MongoDB");
+            return false;
+        }
     }
 }

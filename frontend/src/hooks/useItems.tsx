@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Item } from '../types.tsx';
 import { jwtDecode } from 'jwt-decode'; // You can use a library like jwt-decode
 
@@ -11,13 +11,14 @@ interface TokenPayload {
 
 export const useItems = () => {
   const [items, setItems] = useState<Item[]>([]);
+  const [itemsChanged, setItemsChanged] = useState(false); // State to track changes
 
   const getVendorIdFromToken = () => {
-    const token = localStorage.getItem('authToken'); // Changed from 'jwtToken' to 'authToken'
+    const token = localStorage.getItem('authToken');
     if (token) {
       try {
         const decoded: TokenPayload = jwtDecode(token);
-        console.log('Decoded token:', decoded); // Log to inspect the structure
+        console.log('Decoded token:', decoded);
         return decoded.userId;
       } 
       catch (error) {
@@ -30,8 +31,8 @@ export const useItems = () => {
     return null;
   };
   
-
-  const fetchItems = async () => {
+  // Check the structure of fetched data
+  const fetchItems = useCallback(async () => {
     const vendorId = getVendorIdFromToken();
     if (!vendorId) {
       console.error('No vendorId found in token');
@@ -42,14 +43,17 @@ export const useItems = () => {
       const response = await fetch('http://localhost:8080/api/items/retrieve');
       const data = await response.json();
 
+      console.log("Fetched items:", data); // Log the fetched data to verify
+
       // Filter the items by vendorId
       const vendorItems = data.filter((item: Item) => item.vendorId === vendorId);
       setItems(vendorItems);
+      setItemsChanged(false); // Reset the change flag
     } 
     catch (error) {
       console.error('Error fetching items:', error);
     }
-  };
+  }, [itemsChanged]);
 
   const createItem = async (itemData: Partial<Item>) => {
     const token = localStorage.getItem('authToken'); 
@@ -71,7 +75,7 @@ export const useItems = () => {
       });
   
       if (response.ok) {
-        fetchItems(); // Refresh the list after successful creation
+        setItemsChanged(true); // Set flag to true to trigger fetchItems
       } 
       else {
         const errorText = await response.text();
@@ -82,19 +86,39 @@ export const useItems = () => {
       console.error('Error creating item:', error);
     }
   };
-  
 
   const updateItem = async (itemData: Partial<Item>) => {
     try {
-      const response = await fetch('http://localhost:8080/api/items/update', {
+      // Ensure the _id is a string (proper ObjectId format)
+      const id = itemData._id && typeof itemData._id === 'object' ? String(itemData._id) : itemData._id;
+  
+      if (!id || typeof id !== 'string' || id.length !== 24) {
+        console.error('Invalid _id format.');
+        return;
+      }
+  
+      const filter = { _id: id };
+  
+      // Fields that are being updated
+      const updatedFields = {
+        ...(itemData.productName && { productName: itemData.productName }),
+        ...(itemData.numInStock && { numInStock: itemData.numInStock }),
+        ...(itemData.price && { price: itemData.price }),
+        ...(itemData.tags && { tags: itemData.tags }),
+        ...(itemData.pictures && { pictures: itemData.pictures }),
+        ...(itemData.ratingAvgTotal && { ratingAvgTotal: itemData.ratingAvgTotal }),
+      };
+  
+      const response = await fetch('http://localhost:8080/api/items/modify', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(itemData),
+        body: JSON.stringify({ filter, updatedFields }),  // Ensure both filter and updatedFields are sent
       });
+  
       if (response.ok) {
-        fetchItems(); // Refresh the list after successful update
+        setItemsChanged(true); // Set flag to true to trigger fetchItems
       } else {
         const errorText = await response.text();
         console.error(`Error updating item: ${errorText}`);
@@ -102,30 +126,33 @@ export const useItems = () => {
     } catch (error) {
       console.error('Error updating item:', error);
     }
-  };
-
+  };  
+  
   const deleteItem = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/items/delete`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ _id: id }),
-      });
-      if (response.ok) {
-        fetchItems();
-      } else {
-        console.error('Error deleting item:', response.statusText);
-      }
+        if (typeof id === 'string' && id.trim() !== '') {
+            const response = await fetch(`http://localhost:8080/api/items/delete/${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.ok) {
+                fetchItems(); // Refresh the list after successful deletion
+            } else {
+                console.error('Error deleting item:', await response.text());
+            }
+        } else {
+            console.error('Invalid ID format:', id);
+        }
     } catch (error) {
-      console.error('Error deleting item:', error);
+        console.error('Error deleting item:', error);
     }
   };
 
   useEffect(() => {
     fetchItems();
-  });
+  }, [fetchItems]);
 
   return { items, createItem, updateItem, deleteItem };
 };
