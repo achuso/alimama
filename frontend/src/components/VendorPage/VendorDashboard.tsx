@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Navbar, Nav, Table, Button } from 'react-bootstrap';
+import { Container, Table, Button } from 'react-bootstrap';
 import { useItems } from '../../hooks/useItems.tsx';
 import ItemModal from './ItemModal.tsx';
 import { Item } from '../../types.tsx';
+import DashboardNavbar from '../DashboardNavbar.tsx';
 
 const VendorDashboard: React.FC = () => {
   const { items, createItem, deleteItem } = useItems();
@@ -15,15 +16,8 @@ const VendorDashboard: React.FC = () => {
 
   return (
     <Container>
-      <Navbar bg="dark" variant="dark" expand="lg" className="rounded mb-4 p-3">
-        <Navbar.Brand href="/dashboard" className="fw-bold">
-          Vendor Dashboard
-        </Navbar.Brand>
-        <Nav className="ml-auto">
-          <Nav.Link href="/account">Account</Nav.Link>
-          <Nav.Link href="/logout">Logout</Nav.Link>
-        </Nav>
-      </Navbar>
+      {/* Dashboard title as prop */}
+      <DashboardNavbar title="Vendor Dashboard" />
 
       <h2 className="mt-4">Your Items</h2>
       <Button variant="primary" onClick={() => setShowModal(true)} className="mb-3">
