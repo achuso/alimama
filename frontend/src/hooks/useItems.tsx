@@ -125,7 +125,7 @@ export const useItems = () => {
 
   useEffect(() => {
     fetchItems();
-  }, []);
+  });
 
   return { items, createItem, updateItem, deleteItem };
 };

@@ -64,7 +64,7 @@ const VendorDashboard: React.FC = () => {
             <tr key={item._id}>
               <td>{item.productName}</td>
               <td>{item.numInStock}</td>
-              <td>${item.price.toFixed(2)}</td>
+              <td>{item.price.toFixed(2)}</td>
               <td>
                 <Button
                   variant="warning"
