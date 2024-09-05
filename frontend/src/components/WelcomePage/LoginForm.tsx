@@ -2,14 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FormInput from './FormInput.tsx';
 import { jwtDecode } from 'jwt-decode'; 
-
-interface JwtPayload {
-  sub: string;     
-  fullName: string;
-  role: string;
-  userId: number;  
-  exp: number;
-}
+import { JwtPayload } from '../../types.tsx';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
