@@ -89,7 +89,6 @@ export const useItems = () => {
 
   const updateItem = async (itemData: Partial<Item>) => {
     try {
-      // Ensure the _id is a string (proper ObjectId format)
       const id = itemData._id && typeof itemData._id === 'object' ? String(itemData._id) : itemData._id;
   
       if (!id || typeof id !== 'string' || id.length !== 24) {
@@ -97,9 +96,6 @@ export const useItems = () => {
         return;
       }
   
-      const filter = { _id: id };
-  
-      // Fields that are being updated
       const updatedFields = {
         ...(itemData.productName && { productName: itemData.productName }),
         ...(itemData.numInStock && { numInStock: itemData.numInStock }),
@@ -109,24 +105,27 @@ export const useItems = () => {
         ...(itemData.ratingAvgTotal && { ratingAvgTotal: itemData.ratingAvgTotal }),
       };
   
-      const response = await fetch('http://localhost:8080/api/items/modify', {
+      const response = await fetch(`http://localhost:8080/api/items/modify/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ filter, updatedFields }),  // Ensure both filter and updatedFields are sent
+        body: JSON.stringify(updatedFields),  // Send the updatedFields directly
       });
   
       if (response.ok) {
         setItemsChanged(true); // Set flag to true to trigger fetchItems
-      } else {
+      } 
+      else {
         const errorText = await response.text();
         console.error(`Error updating item: ${errorText}`);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error updating item:', error);
     }
-  };  
+  };
+  
   
   const deleteItem = async (id: string) => {
     try {

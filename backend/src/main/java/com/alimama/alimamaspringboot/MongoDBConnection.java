@@ -7,6 +7,9 @@ import com.mongodb.client.MongoCollection;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import org.springframework.stereotype.Service;
@@ -94,31 +97,36 @@ public class MongoDBConnection {
                     if (newDoc != null) {
                         collection.insertOne(newDoc);
                         return true;
-                    } else {
+                    }
+                    else {
                         System.err.println("Insert failed: no doc provided.");
                         return false;
                     }
                 case "update":
                     if (filter != null && updateDoc != null) {
-                        collection.updateOne(filter, new Document("$set", updateDoc));
-                        return true;
-                    } else {
-                        System.err.println("Update failed: no filter/new doc provided.");
+                        // Ensure updateDoc is properly formatted for MongoDB
+                        UpdateResult result = collection.updateOne(filter, updateDoc);
+                        return result.getModifiedCount() > 0;
+                    }
+                    else {
+                        System.err.println("Update failed: no filter/update doc provided.");
                         return false;
                     }
                 case "delete":
                     if (filter != null) {
-                        collection.deleteOne(filter);
-                        return true;
-                    } else {
+                        DeleteResult result = collection.deleteOne(filter);
+                        return result.getDeletedCount() > 0;
+                    }
+                    else {
                         System.err.println("Delete failed: no filter provided.");
                         return false;
                     }
                 default:
-                    System.err.println("Invalid operationType.");
+                    System.err.println("Invalid operationType: " + operationType);
                     return false;
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.err.println("MongoDB operation error: " + e.getMessage());
             return false;
         }

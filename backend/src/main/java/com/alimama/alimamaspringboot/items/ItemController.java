@@ -1,11 +1,14 @@
 package com.alimama.alimamaspringboot.items;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/items")
@@ -51,23 +54,31 @@ public class ItemController {
     }
 
 
-    @PutMapping("/modify")
-    public ResponseEntity<String> modifyItem(@RequestBody ModifyRequest modifyRequest) {
-        Document filter = modifyRequest.getFilter();
-        Document updatedFields = modifyRequest.getUpdatedFields();
+    @PutMapping("/modify/{id}")
+    public ResponseEntity<String> modifyItem(@PathVariable String id, @RequestBody Map<String, Object> updateRequest) {
+        if (!itemsService.isValidObjectId(id)) {
+            return ResponseEntity.badRequest().body("Invalid item ID.");
+        }
 
-        // Add logs to check what's coming in the request
+        Document filter = new Document("_id", new ObjectId(id));
+        Document updatedFields = new Document(updateRequest);
+
+        // Log
         System.out.println("Filter: " + filter.toJson());
-        System.out.println("Updated Fields: " + updatedFields.toJson());
+        System.out.println("Update Request: " + updateRequest.toString());
+
+        // Validate the update document
+        System.out.println("Update Fields: " + updatedFields.toJson());
 
         boolean success = itemsService.modifyItemInMongo(filter, updatedFields);
         if (success) {
             return ResponseEntity.ok("Item modified successfully.");
         }
         else {
-            return ResponseEntity.status(404).body("Failed to modify item.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to modify item.");
         }
     }
+
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteItem(@PathVariable String id) {

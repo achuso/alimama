@@ -81,23 +81,39 @@ public class ItemService {
 
     public boolean modifyItemInMongo(Document filter, Document updatedFields) {
         if (mongoDBConnection.connectMongoDB()) {
-            // Make sure that the _id is converted to ObjectId if it is not already an ObjectId
+            // Ensure the _id is converted to ObjectId if it is not already an ObjectId
             if (filter.containsKey("_id") && !(filter.get("_id") instanceof ObjectId)) {
-                filter.put("_id", new ObjectId(filter.getString("_id")));  // Convert the _id to ObjectId
+                try {
+                    filter.put("_id", new ObjectId(filter.getString("_id")));  // Convert the _id to ObjectId
+                }
+                catch (IllegalArgumentException e) {
+                    System.err.println("Invalid ObjectId format: " + filter.getString("_id"));
+                    return false;
+                }
             }
 
+            // Wrap updatedFields in $set operator
             Document updateDoc = new Document("$set", updatedFields);
+
+            // Use updateOne for updating a single document
             return mongoDBConnection.queryExecuteMongoDB("update", collectionName, filter, updateDoc, null);
         }
         return false;
     }
 
     public boolean isValidObjectId(String id) {
-        if (id == null) {
+        if (id == null || id.length() != 24)
+            return false;
+
+        try {
+            new ObjectId(id); // exception if the id is invalid
+            return true;
+        }
+        catch (IllegalArgumentException e) {
             return false;
         }
-        return OBJECT_ID_PATTERN.matcher(id).matches();
     }
+
 
     // Delete an item by its ID
     public boolean deleteItemFromMongo(String id) {

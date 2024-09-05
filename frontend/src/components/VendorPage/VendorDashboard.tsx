@@ -25,8 +25,7 @@ const VendorDashboard: React.FC = () => {
     if (editItem) {
       // If there's an editItem, update it
       updateItem({ ...item, _id: editItem._id }); // Ensure the _id is passed to update the correct item
-    } 
-    else {
+    } else {
       // Else, create a new item
       handleCreateItem(item);
     }
@@ -37,14 +36,14 @@ const VendorDashboard: React.FC = () => {
   const handleDeleteItem = (id: any) => {
     // Check if ID is an object and has a specific property indicating it’s an ObjectId
     if (typeof id === 'object' && id !== null) {
-        id = id.toString(); // Convert object to string if applicable
+      id = id.toString(); // Convert object to string if applicable
     }
 
     if (typeof id === 'string' && id.trim() !== '') {
-        console.log('Deleting item with ID:', id);
-        deleteItem(id);
+      console.log('Deleting item with ID:', id);
+      deleteItem(id);
     } else {
-        console.error('ID should be a valid string:', id);
+      console.error('ID should be a valid string:', id);
     }
   };
 
@@ -74,26 +73,32 @@ const VendorDashboard: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <tr key={item._id.toString()}>
-              <td>{item.productName}</td>
-              <td>{item.numInStock}</td>
-              <td>{item.price.toFixed(2)}</td>
-              <td>
-                <Button
-                  variant="warning"
-                  className="mr-2"
-                  onClick={() => handleEditItem(item)}
-                >
-                  Edit
-                </Button>
-                <Button variant="danger" 
-                  onClick={() => handleDeleteItem(item._id as string)}>
-                  Delete
-                </Button>
-              </td>
-            </tr>
-          ))}
+          {items.map((item) => {
+            // Ensure item.price is a number and use a default value if not
+            const price = typeof item.price === 'number' ? item.price : 0;
+            return (
+              <tr key={item._id.toString()}>
+                <td>{item.productName}</td>
+                <td>{item.numInStock}</td>
+                <td>{price.toFixed(2)}</td>
+                <td>
+                  <Button
+                    variant="warning"
+                    className="mr-2"
+                    onClick={() => handleEditItem(item)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteItem(item._id as string)}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </Table>
 
