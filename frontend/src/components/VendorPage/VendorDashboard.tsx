@@ -74,8 +74,7 @@ const VendorDashboard: React.FC = () => {
         </thead>
         <tbody>
           {items.map((item) => {
-            // Ensure item.price is a number and use a default value if not
-            const price = typeof item.price === 'number' ? item.price : 0;
+            const price = typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0;
             return (
               <tr key={item._id.toString()}>
                 <td>{item.productName}</td>

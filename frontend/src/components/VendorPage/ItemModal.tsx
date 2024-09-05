@@ -22,7 +22,6 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave, item }) => 
     if (item) {
       setNewItem(item);
     } else {
-      // Clear the form if creating a new item
       setNewItem({
         productName: '',
         numInStock: 0,
