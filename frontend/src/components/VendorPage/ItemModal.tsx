@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { Item } from '../../types.tsx';
 
@@ -6,9 +6,10 @@ interface ItemModalProps {
   show: boolean;
   onHide: () => void;
   onSave: (item: Partial<Item>) => void;
+  item?: Partial<Item> | null; // The item being edited (if any)
 }
 
-const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave }) => {
+const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave, item }) => {
   const [newItem, setNewItem] = useState<Partial<Item>>({
     productName: '',
     numInStock: 0,
@@ -17,6 +18,21 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave }) => {
     ratingAvgTotal: 0,
   });
 
+  useEffect(() => {
+    if (item) {
+      setNewItem(item);
+    } else {
+      // Clear the form if creating a new item
+      setNewItem({
+        productName: '',
+        numInStock: 0,
+        price: 0,
+        tags: [],
+        ratingAvgTotal: 0,
+      });
+    }
+  }, [item]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewItem({ ...newItem, [name]: value });
@@ -24,20 +40,12 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave }) => {
 
   const handleSave = () => {
     onSave(newItem);
-    setNewItem({
-      productName: '',
-      numInStock: 0,
-      price: 0,
-      tags: [],
-      ratingAvgTotal: 0,
-    });
-    onHide();
   };
 
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
-        <Modal.Title>Create New Item</Modal.Title>
+        <Modal.Title>{item ? 'Edit Item' : 'Create New Item'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -73,7 +81,11 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave }) => {
 
           <Form.Group controlId="pictures">
             <Form.Label>Upload Pictures (Max 3)</Form.Label>
-            <Form.Control type="file" name="pictures" multiple />
+            <Form.Control
+              type="file"
+              name="pictures"
+              multiple
+            />
           </Form.Group>
         </Form>
       </Modal.Body>
@@ -82,7 +94,7 @@ const ItemModal: React.FC<ItemModalProps> = ({ show, onHide, onSave }) => {
           Close
         </Button>
         <Button variant="primary" onClick={handleSave}>
-          Save Item
+          {item ? 'Update Item' : 'Create Item'}
         </Button>
       </Modal.Footer>
     </Modal>

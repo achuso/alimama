@@ -37,6 +37,28 @@ export const useItems = () => {
     }
   };
 
+  const updateItem = async (itemData: Partial<Item>) => {
+    try {
+      const response = await fetch('http://localhost:8080/api/items/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(itemData),
+      });
+      if (response.ok) {
+        fetchItems(); // Refresh the list after successful update
+      } 
+      else {
+        const errorText = await response.text();
+        console.error(`Error updating item: ${errorText}`);
+      }
+    } 
+    catch (error) {
+      console.error('Error updating item:', error);
+    }
+  };
+
   const deleteItem = async (id: string) => {
     try {
       const response = await fetch(`http://localhost:8080/api/items/delete`, {
@@ -62,5 +84,5 @@ export const useItems = () => {
     fetchItems();
   }, []);
 
-  return { items, createItem, deleteItem };
+  return { items, createItem, updateItem, deleteItem };
 };
