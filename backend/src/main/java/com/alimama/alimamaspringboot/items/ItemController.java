@@ -23,16 +23,21 @@ public class ItemController {
     }
 
     @GetMapping("/retrieve")
-    public ResponseEntity<List<Document>> retrieveItems(@RequestParam(required = false) String filterField, @RequestParam(required = false) String filterValue) {
+    public ResponseEntity<List<Document>> retrieveItems(@RequestParam(required = false) String filterField,
+                                                        @RequestParam(required = false) String filterValue,
+                                                        @RequestParam(required = false) Integer vendorId) {
         Document filter = new Document();
-        if (filterField != null && filterValue != null) {
+        // filter by vendor_id
+        if (vendorId != null)
+            filter.append("vendorId", vendorId);
+        // additional filtering
+        if (filterField != null && filterValue != null)
             filter.append(filterField, filterValue);
-        }
+
         List<Document> items = itemsService.retrieveItemsFromMongo(filter);
-        if (items != null)
-            return ResponseEntity.ok(items);
-        else
-            return ResponseEntity.status(500).body(null);
+
+        if (items != null) return ResponseEntity.ok(items);
+        else return ResponseEntity.status(500).body(null);
     }
 
     @PostMapping("/insert")
