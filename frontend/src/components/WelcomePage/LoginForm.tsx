@@ -51,9 +51,10 @@ const LoginForm: React.FC = () => {
 
       // Redirect based on role
       setTimeout(() => {
-        if (role === 'Vendor') {
+        if (role === 'Vendor')
           navigate('/vendor-dashboard');
-        } 
+        else if(role === 'Customer')
+          navigate('/customer-dashboard')
         // Other role-based navigation here
       }, 2000);
 
