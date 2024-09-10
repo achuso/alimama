@@ -31,29 +31,26 @@ export const useItems = () => {
     return null;
   };
   
-  // Check the structure of fetched data
   const fetchItems = useCallback(async () => {
     const vendorId = getVendorIdFromToken();
     if (!vendorId) {
       console.error('No vendorId found in token');
       return;
     }
-
+  
     try {
-      const response = await fetch('http://localhost:8080/api/items/retrieve');
+      const response = await fetch(`http://localhost:8080/api/items/retrieve?vendorId=${vendorId}`);
       const data = await response.json();
-
-      console.log("Fetched items:", data); // Log the fetched data to verify
-
-      // Filter the items by vendorId
-      const vendorItems = data.filter((item: Item) => item.vendorId === vendorId);
-      setItems(vendorItems);
-      setItemsChanged(false); // Reset the change flag
+  
+      console.log("Fetched items:", data);
+  
+      setItems(data);
+      setItemsChanged(false);
     } 
     catch (error) {
       console.error('Error fetching items:', error);
     }
-  }, [itemsChanged]);
+  }, [itemsChanged]);  
 
   const createItem = async (itemData: Partial<Item>) => {
     const token = localStorage.getItem('authToken'); 

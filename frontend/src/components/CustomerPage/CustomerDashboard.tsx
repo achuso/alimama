@@ -15,14 +15,26 @@ const CustomerDashboard: React.FC = () => {
       pictures: string[];
     }[]
   >([]);
+  const [filteredItems, setFilteredItems] = useState(items);  // State to store filtered items
+  const [query, setQuery] = useState('');  // Store the search query
   const [tag, setTag] = useState('');
 
   // Fetch items from MongoDB
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        const response = await axios.get('/api/items/retrieve');
-        setItems(response.data);
+        const response = await axios.get('http://localhost:8080/api/items/retrieve');
+        
+        const formattedItems = response.data.map((item: any) => ({
+          _id: item._id,
+          productName: item.productName,
+          price: item.price,       
+          numInStock: item.numInStock,
+          pictures: item.pictures || [],
+        }));
+        
+        setItems(formattedItems);
+        setFilteredItems(formattedItems);  // set filteredItems to the full list initially
       } catch (error) {
         console.error('Error fetching items:', error);
       }
@@ -32,8 +44,13 @@ const CustomerDashboard: React.FC = () => {
   }, []);
 
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
-    // Search logic
+    setQuery(query);  // Set query in state
+
+    // Filter the items based on the search query
+    const filtered = items.filter(item =>
+      item.productName.toLowerCase().includes(query.toLowerCase())  // case-insensitive search
+    );
+    setFilteredItems(filtered);
   };
 
   const handleTagSelect = (selectedTag: string) => {
@@ -44,13 +61,13 @@ const CustomerDashboard: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <DashboardNavbar title="E-commerce Site" />
+      <DashboardNavbar title="Customer Dashboard" />
       <SearchBar onSearch={handleSearch} />
       <TagFilter
         tags={['electronics', 'tshirt', 'home', 'kitchen']} // temp tags
         onTagSelect={handleTagSelect}
       />
-      <ItemList items={items} />
+      <ItemList items={filteredItems} />
     </div>
   );
 };
