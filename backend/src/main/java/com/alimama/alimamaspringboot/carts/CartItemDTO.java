@@ -1,6 +1,5 @@
 package com.alimama.alimamaspringboot.carts;
 
-// CartItemDTO.java
 public class CartItemDTO {
 
     private String itemId;

@@ -1,6 +1,5 @@
 package com.alimama.alimamaspringboot.carts;
 
-// CartDTO.java
 import java.util.List;
 
 public class CartDTO {
