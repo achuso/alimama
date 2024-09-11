@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Item } from '../types.tsx';
-import { jwtDecode } from 'jwt-decode'; // You can use a library like jwt-decode
+import { jwtDecode } from 'jwt-decode';
 
 interface TokenPayload {
   userId: number;
@@ -51,6 +51,28 @@ export const useItems = () => {
       console.error('Error fetching items:', error);
     }
   }, [itemsChanged]);  
+
+  const fetchItemById = useCallback(async (itemId: string) => {
+    if (!itemId) {
+      console.error('No itemId provided');
+      return null;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/items/retrieve?id=${itemId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch the item');
+      }
+      const data = await response.json();
+
+      console.log("Fetched item:", data);
+      return data;
+    } 
+    catch (error) {
+      console.error('Error fetching item:', error);
+      return null;
+    }
+  }, []); 
 
   const createItem = async (itemData: Partial<Item>) => {
     const token = localStorage.getItem('authToken'); 
@@ -147,8 +169,14 @@ export const useItems = () => {
   };
 
   useEffect(() => {
-    fetchItems();
+    const vendorId = getVendorIdFromToken();
+    if (localStorage.getItem("userRole") === 'Vendor') {
+      fetchItems();
+    } 
+    else {
+      console.error('User is not a vendor or no vendorId found in token');
+    }
   }, [fetchItems]);
 
-  return { items, createItem, updateItem, deleteItem };
+  return { items, createItem, updateItem, deleteItem, fetchItemById };
 };

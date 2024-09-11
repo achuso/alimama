@@ -40,6 +40,24 @@ public class ItemService {
         return null;
     }
 
+    public Document retrieveItemById(ObjectId id) {
+        if (mongoDBConnection.connectMongoDB()) {
+            // Filter to find the item by _id
+            Document filter = new Document("_id", id);
+            List<Document> documents = mongoDBConnection.queryReadMongoDB(collectionName, filter);
+
+            if (documents != null && !documents.isEmpty()) {
+                Document item = documents.get(0);
+                Object objectId = item.get("_id");
+                if (objectId instanceof ObjectId) {
+                    item.put("_id", objectId.toString());
+                }
+                return item;
+            }
+        }
+        return null;
+    }
+
     public boolean insertItemToMongo(int vendorId, String productName, int numInStock, double price, List<MultipartFile> pictures, List<String> tags, double ratingAvgTotal) {
         if (mongoDBConnection.connectMongoDB()) {
             Document newItem = new Document();

@@ -23,21 +23,44 @@ public class ItemController {
     }
 
     @GetMapping("/retrieve")
-    public ResponseEntity<List<Document>> retrieveItems(@RequestParam(required = false) String filterField,
-                                                        @RequestParam(required = false) String filterValue,
-                                                        @RequestParam(required = false) Integer vendorId) {
+    public ResponseEntity<?> retrieveItems(@RequestParam(required = false) String filterField,
+                                           @RequestParam(required = false) String filterValue,
+                                           @RequestParam(required = false) Integer vendorId,
+                                           @RequestParam(required = false) String id) {
         Document filter = new Document();
-        // filter by vendor_id
-        if (vendorId != null)
+
+        // Filter by item ID (_id)
+        if (id != null) {
+            try {
+                ObjectId objectId = new ObjectId(id); // MongoDB ObjectId conversion
+                Document item = itemsService.retrieveItemById(objectId);
+                if (item != null) {
+                    return ResponseEntity.ok(item); // Return the single item
+                }
+                else {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Item not found.");
+                }
+            }
+            catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid ObjectId format.");
+            }
+        }
+
+        // Filter by vendorId
+        if (vendorId != null) {
             filter.append("vendorId", vendorId);
-        // additional filtering
+        }
+
+        // Additional filtering by a custom field
         if (filterField != null && filterValue != null)
             filter.append(filterField, filterValue);
 
         List<Document> items = itemsService.retrieveItemsFromMongo(filter);
 
-        if (items != null) return ResponseEntity.ok(items);
-        else return ResponseEntity.status(500).body(null);
+        if (items != null && !items.isEmpty())
+            return ResponseEntity.ok(items); // Return list of items
+        else
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No items found.");
     }
 
     @PostMapping("/insert")

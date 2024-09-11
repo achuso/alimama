@@ -16,3 +16,9 @@ export interface Item {
     tags: string[];
     ratingAvgTotal: number;
   }
+
+export interface Review {
+    reviewerName: string;
+    reviewText: string;
+    reviewRating: number;
+  }

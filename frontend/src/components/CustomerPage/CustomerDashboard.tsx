@@ -21,7 +21,7 @@ const CustomerDashboard: React.FC = () => {
 
   // Fetch items from MongoDB
   useEffect(() => {
-    const fetchItems = async () => {
+    const fetchAllItems = async () => {
       try {
         const response = await axios.get('http://localhost:8080/api/items/retrieve');
         
@@ -35,12 +35,13 @@ const CustomerDashboard: React.FC = () => {
         
         setItems(formattedItems);
         setFilteredItems(formattedItems);  // set filteredItems to the full list initially
-      } catch (error) {
+      } 
+      catch (error) {
         console.error('Error fetching items:', error);
       }
     };
 
-    fetchItems();
+    fetchAllItems();
   }, []);
 
   const handleSearch = (query: string) => {

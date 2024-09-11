@@ -8,7 +8,7 @@ interface DashboardNavbarProps {
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ title }) => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="rounded mb-4 p-3">
-      <Navbar.Brand href="/dashboard" className="fw-bold">
+      <Navbar.Brand className="fw-bold">
         {title}
       </Navbar.Brand>
       <Nav className="ml-auto">
