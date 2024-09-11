@@ -15,8 +15,8 @@ const CustomerDashboard: React.FC = () => {
       pictures: string[];
     }[]
   >([]);
-  const [filteredItems, setFilteredItems] = useState(items);  // State to store filtered items
-  const [query, setQuery] = useState('');  // Store the search query
+  const [filteredItems, setFilteredItems] = useState(items);  // store filtered items
+  const [query, setQuery] = useState('');  // store the search query
   const [tag, setTag] = useState('');
 
   // Fetch items from MongoDB

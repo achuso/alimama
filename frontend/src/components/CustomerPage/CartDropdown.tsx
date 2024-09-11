@@ -1,23 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dropdown, ButtonGroup, Button } from 'react-bootstrap';
-import { Item } from '../../types.tsx';
+import { useCart } from '../../hooks/useCart.tsx';
 
 interface CartDropdownProps {
-  items: Item[];
+  userId: string;
 }
 
-const CartDropdown: React.FC<CartDropdownProps> = ({ items }) => {
+const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
+  const { cart, loading, error, fetchCart, emptyCart } = useCart();
+
+  useEffect(() => {
+    console.log("Fetching cart for user:", userId); // debug
+    fetchCart(userId);
+  }, [userId, fetchCart]);
+
+  if (loading) {
+    return <p>Loading cart...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  console.log("Cart Data:", cart); // debug
+
   return (
     <Dropdown as={ButtonGroup}>
       <Button variant="primary">Cart</Button>
       <Dropdown.Toggle split variant="primary" id="dropdown-split-basic" />
       <Dropdown.Menu align="end">
-        {items.length > 0 ? (
-          items.map((item, index) => (
-            <Dropdown.Item key={index}>
-              {item.productName} - {item.price} TRY
-            </Dropdown.Item>
-          ))
+        {cart && cart.items.length > 0 ? (
+          <>
+            {cart.items.map((item, index) => (
+              <Dropdown.Item key={index}>
+                {item.productName} - {item.unitPrice} TRY (x{item.quantity})
+              </Dropdown.Item>
+            ))}
+            <Dropdown.Divider />
+            <Dropdown.Item>Total: {cart.totalAmount} TRY</Dropdown.Item>
+            <Dropdown.Item onClick={() => emptyCart(userId)}>Empty Cart</Dropdown.Item>
+          </>
         ) : (
           <Dropdown.Item disabled>No items in the cart</Dropdown.Item>
         )}

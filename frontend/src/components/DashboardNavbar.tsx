@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar, Nav } from 'react-bootstrap';
 import CartDropdown from './CustomerPage/CartDropdown.tsx';
-import { Item } from '../types.tsx';
 
 interface DashboardNavbarProps {
   title: string;
@@ -9,29 +8,22 @@ interface DashboardNavbarProps {
 
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ title }) => {
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [cartItems, setCartItems] = useState<Item[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedUserRole = localStorage.getItem('userRole');
+    const storedUserId = localStorage.getItem('userId');
+    
+    console.log("UserRole:", storedUserRole); 
+    console.log("UserId:", storedUserId); 
+
     if (storedUserRole) {
       setUserRole(storedUserRole);
     }
-
-    // Fetch cart items from MongoDB
-    const fetchCartItems = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/cart');
-        const data = await response.json();
-        setCartItems(data);
-      } catch (error) {
-        console.error('Error fetching cart items:', error);
-      }
-    };
-
-    if (userRole === 'Customer') {
-      fetchCartItems();
+    if (storedUserId) {
+      setUserId(storedUserId);
     }
-  }, [userRole]);
+  }, []);
 
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="rounded mb-4 p-3">
@@ -42,9 +34,9 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ title }) => {
           <Nav.Link href="/account">Account</Nav.Link>
           <Nav.Link href="/logout">Logout</Nav.Link>
         </Nav>
-        {userRole === 'Customer' && (
+        {userRole === 'Customer' && userId && (
           <div className="ms-auto">
-            <CartDropdown items={cartItems} />
+            <CartDropdown userId={userId} />
           </div>
         )}
       </Navbar.Collapse>
