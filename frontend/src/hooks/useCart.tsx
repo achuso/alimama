@@ -28,25 +28,24 @@ export const useCart = () => {
         throw new Error('Failed to fetch cart');
       }
       const data = await response.json();
+      console.log("Cart Data after Fetch:", data); // Log cart data to verify
       setCart(data);
-    } 
-    catch (err) {
+    } catch (err) {
       setError('Error fetching cart');
-    } 
-    finally {
+    } finally {
       setLoading(false);
     }
-  }, []);
+  }, []);  
 
   // Add item to the cart
   const addItemToCart = async (userId: string, itemId: string, productName: string, unitPrice: number, quantity: number) => {
     try {
-      const response = await fetch('http://localhost:8080/api/cart/add', {
+      const response = await fetch(`http://localhost:8080/api/cart/add?userId=${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId, itemId, productName, unitPrice, quantity }),
+        body: JSON.stringify({ itemId, productName, unitPrice, quantity }),
       });
 
       if (response.ok) {
@@ -56,8 +55,7 @@ export const useCart = () => {
       else {
         setError('Error adding item to cart');
       }
-    } 
-    catch (err) {
+    } catch (err) {
       setError('Error adding item to cart');
     }
   };
@@ -65,22 +63,19 @@ export const useCart = () => {
   // Empty the cart
   const emptyCart = async (userId: string) => {
     try {
-      const response = await fetch('http://localhost:8080/api/cart/empty', {
+      const response = await fetch(`http://localhost:8080/api/cart/empty?userId=${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId }),
       });
 
       if (response.ok) {
         setCart({ userId, items: [], totalAmount: 0 });
-      } 
-      else {
+      } else {
         setError('Error emptying cart');
       }
-    } 
-    catch (err) {
+    } catch (err) {
       setError('Error emptying cart');
     }
   };

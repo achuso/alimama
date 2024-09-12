@@ -4,12 +4,15 @@ import { Container, Row, Col, Image, Button, Card } from 'react-bootstrap';
 import DashboardNavbar from '../DashboardNavbar.tsx';
 import { Item, Review } from '../../types.tsx';
 import { useItems } from '../../hooks/useItems.tsx';
+import { useCart } from '../../hooks/useCart.tsx';
 
 const ItemDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Get item id from the URL
-  const { fetchItemById } = useItems(); // Destructure fetchItemById from useItems
+  const { id } = useParams<{ id: string }>();
+  const { fetchItemById } = useItems();
   const [item, setItem] = useState<Item | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const { addItemToCart } = useCart();
+  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -23,14 +26,22 @@ const ItemDetails: React.FC = () => {
 
       if (fetchedItem) {
         setItem(fetchedItem);
-      } 
-      else {
+      } else {
         console.error('Failed to fetch item details');
       }
     };
 
     fetchDetails();
   }, [id, fetchItemById]);
+
+  const handleAddToCart = () => {
+    if (!userId || !item) {
+      console.error('User ID or item details are missing');
+      return;
+    }
+
+    addItemToCart(userId, item._id, item.productName, item.price, 1); // Adding 1 quantity by default
+  };
 
   const placeholderImage = 'https://via.placeholder.com/300?text=No+Image+Available';
   const itemImage = item && item.pictures.length > 0 ? item.pictures[0] : placeholderImage;
@@ -48,7 +59,7 @@ const ItemDetails: React.FC = () => {
             <p className="text-muted">Rating: {item?.ratingAvgTotal ?? 'No rating available'}</p>
             <p>Price: {item?.price} TRY</p>
             <p>In Stock: {item?.numInStock}</p>
-            <Button variant="primary" className="mb-4">Add to Cart</Button>
+            <Button variant="primary" className="mb-4" onClick={handleAddToCart}>Add to Cart</Button>
 
             <h3>Reviews</h3>
             {reviews.length > 0 ? (

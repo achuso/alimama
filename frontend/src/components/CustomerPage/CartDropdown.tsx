@@ -10,8 +10,8 @@ const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
   const { cart, loading, error, fetchCart, emptyCart } = useCart();
 
   useEffect(() => {
-    console.log("Fetching cart for user:", userId); // debug
-    fetchCart(userId);
+    console.log("Fetching cart for user:", userId); // Debugging
+    fetchCart(userId);  // Fetch cart for the specific user
   }, [userId, fetchCart]);
 
   if (loading) {
@@ -22,7 +22,7 @@ const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
     return <p>{error}</p>;
   }
 
-  console.log("Cart Data:", cart); // debug
+  console.log("Cart Data:", cart); // Debugging purpose
 
   return (
     <Dropdown as={ButtonGroup}>
@@ -37,7 +37,9 @@ const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
               </Dropdown.Item>
             ))}
             <Dropdown.Divider />
-            <Dropdown.Item>Total: {cart.totalAmount} TRY</Dropdown.Item>
+            <Dropdown.Item>
+              <strong>Total: {cart.totalAmount} TRY</strong>
+            </Dropdown.Item>
             <Dropdown.Item onClick={() => emptyCart(userId)}>Empty Cart</Dropdown.Item>
           </>
         ) : (
