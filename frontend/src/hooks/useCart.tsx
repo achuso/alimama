@@ -62,12 +62,15 @@ export const useCart = () => {
 
   // Empty the cart
   const emptyCart = async (userId: string) => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`http://localhost:8080/api/cart/empty?userId=${userId}`, {
+      const response = await fetch(`http://localhost:8080/api/cart/empty`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userId }),  // Send userId in the request body
       });
 
       if (response.ok) {
@@ -77,8 +80,11 @@ export const useCart = () => {
       }
     } catch (err) {
       setError('Error emptying cart');
+    } finally {
+      setLoading(false);
     }
   };
+
 
   return { cart, loading, error, fetchCart, addItemToCart, emptyCart };
 };
