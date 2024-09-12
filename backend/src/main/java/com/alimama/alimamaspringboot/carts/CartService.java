@@ -2,6 +2,7 @@ package com.alimama.alimamaspringboot.carts;
 
 import com.alimama.alimamaspringboot.MongoDBConnection;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,34 +31,31 @@ public class CartService {
                 .append("quantity", cartItemDTO.getQuantity());
     }
 
-    // Convert Document from MongoDB to CartItemDTO
-    private CartItemDTO documentToCartItemDTO(Document itemDocument) {
-        return new CartItemDTO(
-                itemDocument.getString("item_id"),
-                itemDocument.getString("product_name"),
-                itemDocument.getDouble("unit_price"),
-                itemDocument.getInteger("quantity")
-        );
-    }
-
     // Add an item to the cart
     public void addItemToCart(String userId, CartItemDTO cartItemDTO) {
-        Document query = new Document("_id", userId); // Find user's cart
+        // Find the user's cart
+        Document query = new Document("_id", userId);
 
         // Retrieve user's cart
         List<Document> cartDocuments = mongoDBConnection.queryReadMongoDB(cartCollectionName, query);
 
         Document cart;
+        String operationType;
+
         if (cartDocuments.isEmpty()) {
-            // If the cart doesn't exist, create a new cart
+            // Create a new cart if it doesn't exist
             cart = new Document("_id", userId)
                     .append("items", new ArrayList<>())
                     .append("total_amount", 0.0)
                     .append("created_at", new java.util.Date());
+            operationType = "insert";  // Use insert if the cart is new
+            System.out.println("Creating a new cart for user: " + userId);
         }
         else {
-            // If the cart exists, get the first result (since user carts are unique)
+            // Get the user's existing cart
             cart = cartDocuments.get(0);
+            operationType = "update";  // Use update if the cart already exists
+            System.out.println("Updating existing cart for user: " + userId);
         }
 
         List<Document> items = safelyCastToListOfDocuments(cart.get("items"));
@@ -73,7 +71,7 @@ public class CartService {
             int newQuantity = existingItem.getInteger("quantity") + cartItemDTO.getQuantity();
             existingItem.put("quantity", newQuantity);
         } else {
-            // If the item doesn't exist, add it to the cart
+            // Add the new item to the cart
             items.add(cartItemDtoToDocument(cartItemDTO));
         }
 
@@ -86,34 +84,45 @@ public class CartService {
         cart.put("items", items);
         cart.put("total_amount", totalAmount);
 
-        // Insert/update the cart
-        mongoDBConnection.queryExecuteMongoDB("update", cartCollectionName, query, new Document("$set", cart), null);
+        // Insert or update the cart in MongoDB depending on the operation type
+        boolean success = mongoDBConnection.queryExecuteMongoDB(operationType, cartCollectionName, query, new Document("$set", cart), cart);
+
+        if (success) {
+            System.out.println("Cart " + operationType + " successful for user: " + userId);
+        } else {
+            System.err.println("Cart " + operationType + " failed for user: " + userId);
+        }
     }
 
     public CartDTO getCartByUserId(String userId) {
-        Document query = new Document("_id", userId);  // Query to find the cart by userId
+        if (mongoDBConnection.connectMongoDB()) {
+            Document filter;
 
-        // Retrieve the cart for the user
-        List<Document> cartDocuments = mongoDBConnection.queryReadMongoDB(cartCollectionName, query);
+            // Check if the userId is a valid ObjectId
+            if (ObjectId.isValid(userId))
+                filter = new Document("_id", new ObjectId(userId));
+            else
+                filter = new Document("_id", userId);
 
-        if (cartDocuments.isEmpty()) {
-            // Return an empty cart if the user doesn't have one
-            return new CartDTO(userId, new ArrayList<>(), 0.0);
-        }
-        else {
-            Document cartDocument = cartDocuments.get(0);
+            System.out.println("Querying cart with filter: " + filter.toJson());
 
-            // Safely cast the items list using the helper method
-            List<Document> itemDocuments = safelyCastToListOfDocuments(cartDocument.get("items"));
+            List<Document> cartDocuments = mongoDBConnection.queryReadMongoDB(cartCollectionName, filter);
 
-            // Convert itemDocuments to CartItemDTOs
-            List<CartItemDTO> cartItems = new ArrayList<>();
-            for (Document itemDocument : itemDocuments) {
-                cartItems.add(documentToCartItemDTO(itemDocument));
+            if (cartDocuments != null && !cartDocuments.isEmpty()) {
+                Document cart = cartDocuments.get(0);
+                List<Document> itemDocuments = safelyCastToListOfDocuments(cart.get("items"));
+                List<CartItemDTO> cartItems = new ArrayList<>();
+
+                for (Document itemDocument : itemDocuments) {
+                    cartItems.add(documentToCartItemDTO(itemDocument));
+                }
+
+                return new CartDTO(userId, cartItems, cart.getDouble("total_amount"));
             }
-
-            return new CartDTO(userId, cartItems, cartDocument.getDouble("total_amount"));
         }
+
+        System.out.println("No cart found for user: " + userId);
+        return new CartDTO(userId, new ArrayList<>(), 0.0);
     }
 
     // Update the cart with new items and recalculate total
@@ -149,15 +158,21 @@ public class CartService {
         mongoDBConnection.queryExecuteMongoDB("update", cartCollectionName, query, update, null);
     }
 
-    // Safely cast Object to List<Document>
-    private List<Document> safelyCastToListOfDocuments(Object itemsObject) {
-        List<Document> items = new ArrayList<>();
+    // Helper method for safely casting list of documents
+    private List<Document> safelyCastToListOfDocuments(Object obj) {
+        if (obj instanceof List<?>) {
+            return (List<Document>) obj;
+        }
+        return new ArrayList<>();
+    }
 
-        if (itemsObject instanceof List<?>)
-            for (Object item : (List<?>) itemsObject)
-                if (item instanceof Document)
-                    items.add((Document) item);
-
-        return items;
+    // Convert Document to CartItemDTO (assume proper implementation)
+    private CartItemDTO documentToCartItemDTO(Document itemDocument) {
+        return new CartItemDTO(
+                itemDocument.getString("item_id"),
+                itemDocument.getString("product_name"),
+                itemDocument.getDouble("unit_price"),
+                itemDocument.getInteger("quantity")
+        );
     }
 }

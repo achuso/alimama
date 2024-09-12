@@ -4,31 +4,23 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
+import org.bson.Document;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-
-import org.springframework.stereotype.Service;
-
 @Service
 public class MongoDBConnection {
-    private final MongoClient mongo;
     private MongoClient mongoClient;
     private final String mongoConnURI;
     private final String mongoDbName;
 
     public MongoDBConnection(MongoClient mongo) {
         // MongoDB credentials
-        String mongoHost;
-        mongoHost = "localhost";
-//        if (System.getenv("MONGO_HOST") != null)
-//            mongoHost = System.getenv("MONGO_HOST");
-//        else mongoHost = "localhost";
-
+        String mongoHost = "localhost";
         String mongoPortStr;
         if (System.getenv("MONGO_PORT") != null)
             mongoPortStr = System.getenv("MONGO_PORT");
@@ -38,7 +30,7 @@ public class MongoDBConnection {
         String mongoUser = System.getenv("MONGO_INITDB_ROOT_USERNAME");
         String mongoPassword = System.getenv("MONGO_INITDB_ROOT_PASSWORD");
 
-        if (/* mongoHost == null || */ mongoPortStr == null || mongoDbName == null || mongoUser == null || mongoPassword == null)
+        if (mongoPortStr == null || mongoDbName == null || mongoUser == null || mongoPassword == null)
             throw new IllegalArgumentException("Missing required MongoDB environment variables");
 
         int mongoPort;
@@ -51,7 +43,6 @@ public class MongoDBConnection {
 
         this.mongoConnURI = String.format("mongodb://%s:%s@%s:%d/%s?authSource=admin",
                 mongoUser, mongoPassword, mongoHost, mongoPort, mongoDbName);
-        this.mongo = mongo;
     }
 
     public boolean connectMongoDB() {
@@ -61,7 +52,8 @@ public class MongoDBConnection {
                 MongoDatabase database = this.mongoClient.getDatabase(this.mongoDbName);
                 database.runCommand(new Document("ping", 1));
                 return true;
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 System.out.println("Failed to connect to MongoDB: " + e.getMessage());
                 return false;
             }
@@ -76,8 +68,16 @@ public class MongoDBConnection {
             MongoDatabase database = mongoClient.getDatabase(this.mongoDbName);
             MongoCollection<Document> collection = database.getCollection(collectionName);
 
-            for (Document doc : collection.find(query))
+            // Logging the query
+            System.out.println("Executing query on collection: " + collectionName);
+            System.out.println("Query: " + query.toJson());
+
+            for (Document doc : collection.find(query)) {
                 results.add(doc);
+                System.out.println("Found document: " + doc.toJson());  // Log the results
+            }
+        } else {
+            System.err.println("MongoDB Client not connected.");
         }
         return results;
     }
@@ -93,37 +93,36 @@ public class MongoDBConnection {
 
         try {
             switch (operationType.toLowerCase()) {
-                case "insert":
-                    if (newDoc != null) {
-                        collection.insertOne(newDoc);
-                        return true;
-                    }
-                    else {
-                        System.err.println("Insert failed: no doc provided.");
-                        return false;
-                    }
-                case "update":
-                    if (filter != null && updateDoc != null) {
-                        // Ensure updateDoc is properly formatted for MongoDB
-                        UpdateResult result = collection.updateOne(filter, updateDoc);
-                        return result.getModifiedCount() > 0;
-                    }
-                    else {
-                        System.err.println("Update failed: no filter/update doc provided.");
-                        return false;
-                    }
-                case "delete":
-                    if (filter != null) {
-                        DeleteResult result = collection.deleteOne(filter);
-                        return result.getDeletedCount() > 0;
-                    }
-                    else {
-                        System.err.println("Delete failed: no filter provided.");
-                        return false;
-                    }
-                default:
-                    System.err.println("Invalid operationType: " + operationType);
+            case "insert":
+                if (newDoc != null) {
+                    collection.insertOne(newDoc);
+                    return true;
+                }
+                else {
+                    System.err.println("Insert failed: no doc provided.");
                     return false;
+                }
+            case "update":
+                if (filter != null && updateDoc != null) {
+                    UpdateResult result = collection.updateOne(filter, updateDoc);
+                    return result.getModifiedCount() > 0;
+                }
+                else {
+                    System.err.println("Update failed: no filter/update doc provided.");
+                    return false;
+                }
+            case "delete":
+                if (filter != null) {
+                    DeleteResult result = collection.deleteOne(filter);
+                    return result.getDeletedCount() > 0;
+                }
+                else {
+                    System.err.println("Delete failed: no filter provided.");
+                    return false;
+                }
+            default:
+                System.err.println("Invalid operationType: " + operationType);
+                return false;
             }
         }
         catch (Exception e) {
@@ -137,7 +136,8 @@ public class MongoDBConnection {
             try {
                 this.mongoClient.close();
                 return true;
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 System.err.println(e.getMessage());
                 return false;
             }
