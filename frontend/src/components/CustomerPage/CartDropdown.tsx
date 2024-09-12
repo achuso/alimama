@@ -10,6 +10,7 @@ const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
   const { cart, loading, error, fetchCart, emptyCart } = useCart();
 
   useEffect(() => {
+    console.log("Fetching cart for user:", userId); // Debugging
     fetchCart(userId);  // Fetch cart for the specific user
   }, [userId, fetchCart]);
 
@@ -20,6 +21,8 @@ const CartDropdown: React.FC<CartDropdownProps> = ({ userId }) => {
   if (error) {
     return <p>{error}</p>;
   }
+
+  console.log("Cart Data:", cart); // Debugging purpose
 
   return (
     <Dropdown as={ButtonGroup}>

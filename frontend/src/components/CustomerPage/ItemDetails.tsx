@@ -26,7 +26,8 @@ const ItemDetails: React.FC = () => {
 
       if (fetchedItem) {
         setItem(fetchedItem);
-      } else {
+      } 
+      else {
         console.error('Failed to fetch item details');
       }
     };
