@@ -1,13 +1,11 @@
 // Import env vars
 const path = require('path');
 const dotenv = require('dotenv');
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const mongo_username = process.env.MONGO_INITDB_ROOT_USERNAME;
 const mongo_password = process.env.MONGO_INITDB_ROOT_PASSWORD;
 const mongo_dbname = process.env.MONGO_DB_NAME;
-//const mongo_host = process.env.MONGO_HOST;
-const mongo_host = "localhost";
+const mongo_host = process.env.MONGO_HOST || "localhost";
 const mongo_port = process.env.MONGO_PORT;
 
 // Connect to MongoDB

@@ -1,21 +1,17 @@
-version: '3.8'
-
 services:
   # PostgreSQL
   postgres:
     image: postgres:16.3
     container_name: alimama-postgres-container
-    # env_file:
-    #   - /dotenv.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB_NAME}
-    ports:
-      - "5432:5432"
     volumes:
-      # - postgres-data:/var/lib/pqsql/data
-      - ./database/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "${POSTGRES_PORT}:5432"
     networks:
       - my-network
 
@@ -23,28 +19,27 @@ services:
   mongo:
     image: mongo:6
     container_name: alimama-mongodb-container
-    # env_file:
-    #   - ./dotenv.env
     environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT}:${MONGO_PORT}"
     volumes:
-      # - mongo-data:/data/db
-      - ./database/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - mongo-data:/data/db
     networks:
       - my-network
 
   # Spring Boot
-  springboot:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: alimama-springboot-container
-    # env_file:
-    #   - ./dotenv.env
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
@@ -61,7 +56,7 @@ services:
     networks:
       - my-network
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
 
   # React.js
   frontend:
@@ -69,8 +64,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: alimama-frontend-container
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_API_URL: http://backend:${BACKEND_PORT}/api
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT}:80"
     networks:
       - my-network
 
