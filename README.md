@@ -25,8 +25,8 @@ docker-compose up -d
 docker-compose down
 ```
 ## **To-Do**
-- [] Implement review and purchasing logic
-- [] Add account page to change credentials
-- [] Support images for products
-- [] Fix bandaid page reloading soln. for cart interactions
-- [] Get a cease-and-desist from Alibaba
+- [ ] Implement review and purchasing logic
+- [ ] Add account page to change credentials
+- [ ] Support images for products
+- [ ] Fix bandaid page reloading soln. for cart interactions
+- [ ] Get a cease-and-desist from Alibaba
